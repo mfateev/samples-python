@@ -1,25 +1,38 @@
-from typing import Any, Type, TypeVar
+from datetime import timedelta
+from typing import Any, Type, TypeVar, Callable, Awaitable, get_origin
 
 from temporalio import activity, workflow
 from temporalio.converter import PayloadCodec
+from temporalio.workflow import unsafe
 
+from large_payload.large_payload_ref import JSONType, U
 from large_payload.reference import LargePayloadImpl, LargePayloadStore
 
 T = TypeVar('T')
 
 
 class LargePayloadWorkflowImpl(LargePayloadImpl):
-    def __init__(self, store: LargePayloadStore, codec: PayloadCodec):
-        self.store = store
-        self.codec: PayloadCodec = codec
 
     async def fetch(self, reference: Any, type_hint=Type[T]) -> T:
-        raw_payload = await self.store.fetch(reference)
-        decoded = await self.codec.decode([raw_payload])
+        raw_payload = await self._store.fetch(reference)
+        decoded = await self._codec.decode([raw_payload])
         value = workflow.payload_converter().from_payload(decoded, type_hint=type_hint)
         return value
 
     async def store(self, value: Any) -> Any:
         payload = workflow.payload_converter().to_payload(value)
-        encoded = await self.codec.encode([payload])
-        return await self.store.store(encoded[0])
+        encoded = await self._codec.encode([payload])
+        return await self._store.store(encoded[0])
+
+    async def extract(self, encoded_ref: JSONType, transformer: Callable[[T], Awaitable[U]]) -> U:
+        # We really need the side-effect here. Or an option to not include the activity input into the history.
+        # The non-deterministic code relies on the lack of check of the activity input.
+        value = None
+        if not unsafe.is_replaying():
+            value = await transformer(self.fetch(reference=encoded_ref, type_hint=get_origin(transformer)))
+        return workflow.execute_local_activity(LargePayloadWorkflowImpl.extract, value, start_to_close_timeout=timedelta(seconds=10))
+
+    @classmethod
+    @activity.defn
+    async def extract(value):
+        return value
