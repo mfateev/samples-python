@@ -2,11 +2,13 @@ from datetime import timedelta
 from typing import Any, Type, TypeVar, Callable, Awaitable, get_origin
 
 from temporalio import activity, workflow
+from temporalio.common import RawValue
 from temporalio.converter import PayloadCodec
 from temporalio.workflow import unsafe
 
-from large_payload.large_payload_ref import JSONType, U
-from large_payload.reference import LargePayloadImpl, LargePayloadStore
+from large_payload.reference import JSONType, U
+from large_payload.store import LargePayloadStore
+from large_payload._impl import LargePayloadImpl
 
 T = TypeVar('T')
 
@@ -25,14 +27,16 @@ class LargePayloadWorkflowImpl(LargePayloadImpl):
         return await self._store.store(encoded[0])
 
     async def extract(self, encoded_ref: JSONType, transformer: Callable[[T], Awaitable[U]]) -> U:
-        # We really need the side-effect here. Or an option to not include the activity input into the history.
+        # We really need the side-effect here.
         # The non-deterministic code relies on the lack of check of the activity input.
         value = None
         if not unsafe.is_replaying():
-            value = await transformer(self.fetch(reference=encoded_ref, type_hint=get_origin(transformer)))
-        return workflow.execute_local_activity(LargePayloadWorkflowImpl.extract, value, start_to_close_timeout=timedelta(seconds=10))
+            with workflow.unsafe.sandbox_unrestricted():
+                value = await transformer(self.fetch(reference=encoded_ref, type_hint=get_origin(transformer)))
+        return workflow.execute_local_activity(LargePayloadWorkflowImpl.extract, value,
+                                               start_to_close_timeout=timedelta(seconds=10))
 
     @classmethod
     @activity.defn
-    async def extract(value):
+    async def extract(cls, value: RawValue) -> RawValue:
         return value

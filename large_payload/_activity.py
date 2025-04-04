@@ -4,8 +4,9 @@ from dulwich.porcelain import fetch
 from temporalio import activity
 from temporalio.converter import PayloadCodec
 
-from large_payload.large_payload_ref import JSONType, U, T
-from large_payload.reference import LargePayloadImpl, LargePayloadStore
+from large_payload.reference import JSONType, U, T
+from large_payload.store import LargePayloadStore
+from large_payload._impl import LargePayloadImpl
 
 
 class LargePayloadActivityImpl(LargePayloadImpl):

@@ -1,43 +1,64 @@
-from __future__ import annotations
+import contextvars
+from abc import ABC
+from dataclasses import dataclass, field
+from typing import Generic, TypeVar, ClassVar, Type, Callable, Awaitable, Any, get_origin, Union, List, Dict
 
-from abc import ABC, abstractmethod
-from typing import TypeVar, Any, Type, Callable, Awaitable
+from large_payload._impl import LargePayloadImpl
 
-from temporalio.api.common.v1 import Payload
-from temporalio.converter import PayloadCodec
+T = TypeVar('T')
+U = TypeVar('U')
 
-from large_payload.large_payload_ref import JSONType, T, U
+JSONType = Union[
+    None,
+    bool,
+    int,
+    float,
+    str,
+    List["JSONType"],
+    Dict[str, "JSONType"]
+]
 
 
-class LargePayloadStore(ABC):
-    @abstractmethod
-    async def fetch(self, encoded_ref: JSONType) -> Payload:
-        pass
+@dataclass
+class LargePayloadRef(ABC, Generic[T]):
+    _impl_context: ClassVar[contextvars.ContextVar[LargePayloadImpl]] = contextvars.ContextVar(
+        '_large_payload_store')
 
-    @abstractmethod
-    async def store(self, payload: Payload) -> JSONType:
+    # Encoded payload reference
+    _reference: JSONType = None
+
+    # Deserialized payload
+    _value: T = None
+    _value_set: bool = False
+
+    def __init__(self, value: T) -> None:
+        self._value = value
+        self._value_set = True
+
+    async def fetch(self, type_hint=Type[T]) -> T:
         """
-        Stores payload. The returned reference can be used to fetch the payload back.
+        Fetch and return the payload.
+        Avoid calling in the context of a workflow as it can affect the replay performance.
+        Use :meth:`extract` instead.
         """
-        pass
+        if self._value_set:
+            return self._value
 
+        impl: LargePayloadImpl = LargePayloadRef._impl_context.get()
+        return await impl.fetch(encoded_ref=self._reference, type_hint=type_hint)
 
-class LargePayloadImpl(ABC):
-    def __init__(self, store: LargePayloadStore, codec: PayloadCodec):
-        self._store = store
-        self._codec: PayloadCodec = codec
-
-    @abstractmethod
-    async def fetch(self, encoded_ref: JSONType, type_hint=Type[T]) -> T:
-        pass
-
-    @abstractmethod
-    async def store(self, value: Any) -> JSONType:
+    async def extract(self, transformer: Callable[[T], Awaitable[U]]) -> U:
         """
-        Stores a value in an external store.
-        The returned reference can be used to fetch the payload back.
-        """
-        pass
+        Applies a transformer function to the payload.
+        When called in the context of a workflow the result of the transformer function
+        is used when workflow is replayed.
 
-    async def extract(self, encoded_ref: JSONType, transformer: Callable[[T], Awaitable[U]]) -> U:
-        pass
+        Args:
+            transformer: A function that takes the payload of type T
+                         and returns a transformed value of type U.
+
+        Returns:
+            The transformed payload of type U.
+        """
+        impl: LargePayloadImpl = LargePayloadRef._impl_context.get()
+        return await impl.extract(transformer=transformer, encoded_ref=self._reference)
