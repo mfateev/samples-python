@@ -9,7 +9,7 @@ from large_payload.reference import JSONType, T, U
 from large_payload.store import LargePayloadStore
 
 
-class LargePayloadImpl(ABC):
+class _LargePayloadImpl(ABC):
     def __init__(self, store: LargePayloadStore, codec: PayloadCodec):
         self._store = store
         self._codec: PayloadCodec = codec

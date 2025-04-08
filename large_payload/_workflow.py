@@ -8,12 +8,12 @@ from temporalio.workflow import unsafe
 
 from large_payload.reference import JSONType, U
 from large_payload.store import LargePayloadStore
-from large_payload._impl import LargePayloadImpl
+from large_payload._impl import _LargePayloadImpl
 
 T = TypeVar('T')
 
 
-class LargePayloadWorkflowImpl(LargePayloadImpl):
+class _LargePayloadWorkflowImpl(_LargePayloadImpl):
 
     async def fetch(self, reference: Any, type_hint=Type[T]) -> T:
         raw_payload = await self._store.fetch(reference)
@@ -33,7 +33,7 @@ class LargePayloadWorkflowImpl(LargePayloadImpl):
         if not unsafe.is_replaying():
             with workflow.unsafe.sandbox_unrestricted():
                 value = await transformer(self.fetch(reference=encoded_ref, type_hint=get_origin(transformer)))
-        return workflow.execute_local_activity(LargePayloadWorkflowImpl.extract, value,
+        return workflow.execute_local_activity(_LargePayloadWorkflowImpl.extract, value,
                                                start_to_close_timeout=timedelta(seconds=10))
 
     @classmethod

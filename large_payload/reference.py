@@ -4,7 +4,7 @@ from abc import ABC
 from dataclasses import dataclass, field
 from typing import Generic, TypeVar, ClassVar, Type, Callable, Awaitable, Any, get_origin, Union, List, Dict
 
-from large_payload._impl import LargePayloadImpl
+from large_payload._impl import _LargePayloadImpl
 
 T = TypeVar('T')
 U = TypeVar('U')
@@ -22,12 +22,12 @@ JSONType = Union[
 
 @dataclass
 class LargePayloadRef(ABC, Generic[T]):
-    _impl_context: ClassVar[contextvars.ContextVar[LargePayloadImpl]] = contextvars.ContextVar(
+    _impl_context: ClassVar[contextvars.ContextVar[_LargePayloadImpl]] = contextvars.ContextVar(
         '_large_payload_store')
 
     @classmethod
     @contextlib.contextmanager
-    def use_impl(cls, impl_instance: LargePayloadImpl):
+    def use_impl(cls, impl_instance: _LargePayloadImpl):
         token = cls._impl_context.set(impl_instance)
         try:
             yield
@@ -54,7 +54,7 @@ class LargePayloadRef(ABC, Generic[T]):
         if self._value_set:
             return self._value
 
-        impl: LargePayloadImpl = LargePayloadRef._impl_context.get()
+        impl: _LargePayloadImpl = LargePayloadRef._impl_context.get()
         return await impl.fetch(encoded_ref=self._reference, type_hint=type_hint)
 
     async def extract(self, transformer: Callable[[T], Awaitable[U]]) -> U:
@@ -70,5 +70,5 @@ class LargePayloadRef(ABC, Generic[T]):
         Returns:
             The transformed payload of type U.
         """
-        impl: LargePayloadImpl = LargePayloadRef._impl_context.get()
+        impl: _LargePayloadImpl = LargePayloadRef._impl_context.get()
         return await impl.extract(transformer=transformer, encoded_ref=self._reference)

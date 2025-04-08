@@ -6,10 +6,10 @@ from temporalio.converter import PayloadCodec
 
 from large_payload.reference import JSONType, U, T
 from large_payload.store import LargePayloadStore
-from large_payload._impl import LargePayloadImpl
+from large_payload._impl import _LargePayloadImpl
 
 
-class LargePayloadActivityImpl(LargePayloadImpl):
+class _LargePayloadActivityImpl(_LargePayloadImpl):
 
     async def fetch(self, reference: JSONType, type_hint=Type[T]) -> T:
         raw_payload = await self._store.fetch(reference)
