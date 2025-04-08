@@ -1,3 +1,4 @@
+import contextlib
 import contextvars
 from abc import ABC
 from dataclasses import dataclass, field
@@ -23,6 +24,15 @@ JSONType = Union[
 class LargePayloadRef(ABC, Generic[T]):
     _impl_context: ClassVar[contextvars.ContextVar[LargePayloadImpl]] = contextvars.ContextVar(
         '_large_payload_store')
+
+    @classmethod
+    @contextlib.contextmanager
+    def use_impl(cls, impl_instance: LargePayloadImpl):
+        token = cls._impl_context.set(impl_instance)
+        try:
+            yield
+        finally:
+            cls._impl_context.reset(token)
 
     # Encoded payload reference
     _reference: JSONType = None
