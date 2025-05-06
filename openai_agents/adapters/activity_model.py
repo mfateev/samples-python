@@ -1,16 +1,19 @@
 from __future__ import annotations
 
+from agents.items import TResponseStreamEvent
 from temporalio import workflow
 
 with workflow.unsafe.imports_passed_through():
     from datetime import timedelta
     from idlelib.query import Query
-    from typing import Union, Optional, List, Literal, Iterable, Callable, Any
+    from typing import Union, Optional, List, Literal, Iterable, Callable, Any, AsyncIterator
     from wsgiref.headers import Headers
     from agents.function_schema import function_schema
     from agents.models.openai_provider import DEFAULT_MODEL
-    from openai_agents.adapters.model_activity import OpenAIActivityInput, invoke_open_ai_model
-    from agents import ModelProvider, Model, OpenAIResponsesModel, Tool, RunContextWrapper, FunctionTool
+    from openai_agents.adapters.invoke_model_activity import OpenAIActivityInput, invoke_open_ai_client, \
+        ActivityModelInput, invoke_model
+    from agents import ModelProvider, Model, OpenAIResponsesModel, Tool, RunContextWrapper, FunctionTool, \
+        TResponseInputItem, ModelSettings, AgentOutputSchemaBase, Handoff, ModelTracing, ModelResponse
     import httpx
     from fastapi import Body
     from openai import NotGiven, NOT_GIVEN, AsyncStream, AsyncOpenAI
@@ -68,7 +71,7 @@ def _monkey_patch_open_ai_client_create(client: AsyncOpenAI) -> AsyncOpenAI:
                                              extra_query=extra_query, extra_body=extra_body, timeout=timeout)
 
         return await workflow.execute_activity(
-            invoke_open_ai_model, activity_input,
+            invoke_open_ai_client, activity_input,
             start_to_close_timeout=timedelta(seconds=60),
             heartbeat_timeout=timedelta(seconds=5),
             summary=get_summary(input)
@@ -103,3 +106,35 @@ def activity_as_tool(activity: Callable[..., Any]) -> Tool:
         on_invoke_tool=run_activity,
         strict_json_schema=True,
     )
+
+
+class ActivityModelStubProvider(ModelProvider):
+    def get_model(self, model_name: str | None) -> Model:
+        if model_name is None:
+            model_name = DEFAULT_MODEL
+        return ActivityModel(model_name)
+
+
+class ActivityModel(Model):
+    def __init__(self, model_name: str) -> None:
+        self.model_name = model_name
+
+    async def get_response(self, system_instructions: str | None, input: str | list[TResponseInputItem],
+                           model_settings: ModelSettings, tools: list[Tool],
+                           output_schema: AgentOutputSchemaBase | None, handoffs: list[Handoff], tracing: ModelTracing,
+                           *, previous_response_id: str | None) -> ModelResponse:
+        activity_input = ActivityModelInput(model_name=self.model_name, system_instructions=system_instructions,
+                                            input=input, model_settings=model_settings, tools=tools,
+                                            output_schema=output_schema, handoffs=handoffs, tracing=tracing,
+                                            previous_response_id=previous_response_id)
+        return await workflow.execute_activity(
+            invoke_model,
+            activity_input,
+            start_to_close_timeout=timedelta(seconds=10),
+        )
+
+    def stream_response(self, system_instructions: str | None, input: str | list[TResponseInputItem],
+                        model_settings: ModelSettings, tools: list[Tool], output_schema: AgentOutputSchemaBase | None,
+                        handoffs: list[Handoff], tracing: ModelTracing, *, previous_response_id: str | None) -> \
+            AsyncIterator[TResponseStreamEvent]:
+        raise NotImplementedError("Temporal model doesn't support streams yet")

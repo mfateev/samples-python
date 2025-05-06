@@ -4,7 +4,7 @@ from temporalio import workflow
 # Import our activity, passing it through the sandbox
 with workflow.unsafe.imports_passed_through():
     from agents import Agent, Runner, RunConfig
-    from openai_agents.adapters.activity_model import ModelStubProvider
+    from openai_agents.adapters.activity_model import ActivityModelStubProvider
 
 
 @workflow.defn(sandboxed=False)
@@ -15,6 +15,6 @@ class HelloWorldAgent:
             name="Assistant",
             instructions="You only respond in haikus.",
         )
-        config = RunConfig(model_provider=ModelStubProvider())
+        config = RunConfig(model_provider=ActivityModelStubProvider())
         result = await Runner.run(agent, input=prompt, run_config=config)
         return result.final_output
