@@ -73,7 +73,7 @@ def _monkey_patch_open_ai_client_create(client: AsyncOpenAI) -> AsyncOpenAI:
                                              extra_query=extra_query, extra_body=extra_body, timeout=timeout)
 
         return await workflow.execute_activity(
-            invoke_open_ai_model, invoke_open_ai_client, activity_input,
+            invoke_open_ai_client, activity_input,
             start_to_close_timeout=timedelta(seconds=60),
             heartbeat_timeout=timedelta(seconds=5),
             summary=get_summary(input)

@@ -1,14 +1,14 @@
+from dataclasses import dataclass
 from typing import Union, Optional, List, Literal, Iterable, TypedDict
 
 import httpx
 from agents import OpenAIResponsesModel, TResponseInputItem, ModelSettings, Tool, AgentOutputSchemaBase, Handoff, \
     ModelTracing, ModelResponse
-from openai import AsyncOpenAI, NotGiven, NOT_GIVEN, BaseModel
+from openai import AsyncOpenAI, NotGiven, NOT_GIVEN
 from openai._types import Headers, Query, Body
 from openai.types import ResponsesModel, Metadata, Reasoning
 from openai.types.responses import ResponseInputParam, ResponseIncludable, ResponseTextConfigParam, \
     response_create_params, ToolParam, Response
-
 from temporalio import activity
 
 from custom_decorator.activity_utils import _auto_heartbeater
@@ -42,12 +42,11 @@ class OpenAIActivityInput(TypedDict, total=False):
 
 @activity.defn
 @_auto_heartbeater
-async def invoke_open_ai_model(input: OpenAIActivityInput) -> Response:
+async def invoke_open_ai_client(input: OpenAIActivityInput) -> Response:
     client = AsyncOpenAI()
     return await client.responses.create(**input)
 
-@dataclass
-class ActivityModelInput:
+class ActivityModelInput(TypedDict, total=False):
     # model_config = {
     #     "arbitrary_types_allowed": True,
     # }
@@ -64,7 +63,7 @@ class ActivityModelInput:
 
 
 @activity.defn
-@auto_heartbeater
+@_auto_heartbeater
 async def invoke_open_ai_model(input: ActivityModelInput) -> ModelResponse:
     client = OpenAIResponsesModel(input.model_name, AsyncOpenAI())
     return await client.get_response(**input.to_dict())
