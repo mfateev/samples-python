@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 from typing import Union, Optional, List, Literal, Iterable, TypedDict
 
 import httpx
@@ -12,7 +11,7 @@ from openai.types.responses import ResponseInputParam, ResponseIncludable, Respo
 
 from temporalio import activity
 
-from openai_agents.adapters.heartbeat_decorator import auto_heartbeater
+from custom_decorator.activity_utils import _auto_heartbeater
 
 
 class OpenAIActivityInput(TypedDict, total=False):
@@ -42,8 +41,8 @@ class OpenAIActivityInput(TypedDict, total=False):
 
 
 @activity.defn
-@auto_heartbeater
-async def invoke_open_ai_client(input: OpenAIActivityInput) -> Response:
+@_auto_heartbeater
+async def invoke_open_ai_model(input: OpenAIActivityInput) -> Response:
     client = AsyncOpenAI()
     return await client.responses.create(**input)
 

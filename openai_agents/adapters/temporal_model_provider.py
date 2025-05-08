@@ -3,6 +3,8 @@ from __future__ import annotations
 from agents.items import TResponseStreamEvent
 from temporalio import workflow
 
+from openai_agents.adapters.invoke_model_activity import OpenAIActivityInput, invoke_open_ai_model
+
 with workflow.unsafe.imports_passed_through():
     from datetime import timedelta
     from idlelib.query import Query
@@ -71,7 +73,7 @@ def _monkey_patch_open_ai_client_create(client: AsyncOpenAI) -> AsyncOpenAI:
                                              extra_query=extra_query, extra_body=extra_body, timeout=timeout)
 
         return await workflow.execute_activity(
-            invoke_open_ai_client, activity_input,
+            invoke_open_ai_model, invoke_open_ai_client, activity_input,
             start_to_close_timeout=timedelta(seconds=60),
             heartbeat_timeout=timedelta(seconds=5),
             summary=get_summary(input)
@@ -82,7 +84,7 @@ def _monkey_patch_open_ai_client_create(client: AsyncOpenAI) -> AsyncOpenAI:
     return client
 
 
-class ModelStubProvider(ModelProvider):
+class TemporalModelProvider(ModelProvider):
     def get_model(self, model_name: str | None) -> Model:
         if model_name is None:
             model_name = DEFAULT_MODEL
