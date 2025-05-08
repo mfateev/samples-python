@@ -30,7 +30,7 @@ class BedrockActivities:
             }
         )
 
-        response = self.bedrock.invoke_model(
+        response = self.bedrock.invoke_open_ai_model(
             body=body, modelId=modelId, accept=accept, contentType=contentType
         )
 

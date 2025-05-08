@@ -11,7 +11,7 @@ with workflow.unsafe.imports_passed_through():
     from agents.function_schema import function_schema
     from agents.models.openai_provider import DEFAULT_MODEL
     from openai_agents.adapters.invoke_model_activity import OpenAIActivityInput, invoke_open_ai_client, \
-        ActivityModelInput, invoke_model
+        ActivityModelInput, invoke_open_ai_model
     from agents import ModelProvider, Model, OpenAIResponsesModel, Tool, RunContextWrapper, FunctionTool, \
         TResponseInputItem, ModelSettings, AgentOutputSchemaBase, Handoff, ModelTracing, ModelResponse
     import httpx
@@ -128,7 +128,7 @@ class ActivityModel(Model):
                                             output_schema=output_schema, handoffs=handoffs, tracing=tracing,
                                             previous_response_id=previous_response_id)
         return await workflow.execute_activity(
-            invoke_model,
+            invoke_open_ai_model,
             activity_input,
             start_to_close_timeout=timedelta(seconds=10),
         )

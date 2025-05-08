@@ -66,6 +66,6 @@ class ActivityModelInput:
 
 @activity.defn
 @auto_heartbeater
-async def invoke_model(input: ActivityModelInput) -> ModelResponse:
+async def invoke_open_ai_model(input: ActivityModelInput) -> ModelResponse:
     client = OpenAIResponsesModel(input.model_name, AsyncOpenAI())
     return await client.get_response(**input.to_dict())
