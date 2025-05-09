@@ -1,10 +1,10 @@
 from temporalio import workflow
 
-from openai_agents.adapters.temporal_model_provider import ActivityModelStubProvider, TemporalModelProvider
 
 # Import our activity, passing it through the sandbox
 with workflow.unsafe.imports_passed_through():
     from agents import Agent, Runner, RunConfig
+    from openai_agents.adapters.temporal_model_provider import ActivityModelStubProvider, TemporalModelProvider
 
 
 @workflow.defn(sandboxed=False)

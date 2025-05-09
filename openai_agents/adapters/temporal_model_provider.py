@@ -3,19 +3,21 @@ from __future__ import annotations
 from agents.items import TResponseStreamEvent
 from temporalio import workflow
 
-from openai_agents.adapters.invoke_model_activity import OpenAIActivityInput, invoke_open_ai_model
+from openai_agents.adapters.invoke_model_activity import OpenAIActivityInput, invoke_open_ai_model, ToolInput, \
+    FunctionToolInput
 
 with workflow.unsafe.imports_passed_through():
     from datetime import timedelta
     from idlelib.query import Query
-    from typing import Union, Optional, List, Literal, Iterable, Callable, Any, AsyncIterator
+    from typing import Union, Optional, List, Literal, Iterable, Callable, Any, AsyncIterator, cast
     from wsgiref.headers import Headers
     from agents.function_schema import function_schema
     from agents.models.openai_provider import DEFAULT_MODEL
     from openai_agents.adapters.invoke_model_activity import OpenAIActivityInput, invoke_open_ai_client, \
         ActivityModelInput, invoke_open_ai_model
     from agents import ModelProvider, Model, OpenAIResponsesModel, Tool, RunContextWrapper, FunctionTool, \
-        TResponseInputItem, ModelSettings, AgentOutputSchemaBase, Handoff, ModelTracing, ModelResponse
+        TResponseInputItem, ModelSettings, AgentOutputSchemaBase, Handoff, ModelTracing, ModelResponse, FileSearchTool, \
+        WebSearchTool, ComputerTool
     import httpx
     from fastapi import Body
     from openai import NotGiven, NOT_GIVEN, AsyncStream, AsyncOpenAI
@@ -125,9 +127,31 @@ class ActivityModel(Model):
                            model_settings: ModelSettings, tools: list[Tool],
                            output_schema: AgentOutputSchemaBase | None, handoffs: list[Handoff], tracing: ModelTracing,
                            *, previous_response_id: str | None) -> ModelResponse:
-        activity_input = ActivityModelInput(model_name=self.model_name, system_instructions=system_instructions,
-                                            input=input, model_settings=model_settings, tools=tools,
-                                            output_schema=output_schema, handoffs=handoffs, tracing=tracing,
+
+        def make_tool_info(tool: Tool) -> ToolInput:
+            match tool.name:
+                case "file_search":
+                    return cast(FileSearchTool, tool)
+                case "web_search_preview":
+                    return cast(WebSearchTool, tool)
+                case "computer_search_preview":
+                    raise NotImplementedError("Computer search preview is not supported in Temporal model")
+                case _:
+                    return FunctionToolInput(name=tool.name,
+                                             description=tool.description,
+                                             params_json_schema=tool.params_json_schema,
+                                             strict_json_schema=tool.strict_json_schema)
+
+        tool_infos = [make_tool_info(x) for x in tools] if tools is not None else None
+
+        activity_input = ActivityModelInput(model_name=self.model_name,
+                                            system_instructions=system_instructions,
+                                            input=input,
+                                            model_settings=model_settings,
+                                            tools=tool_infos,
+                                            output_schema=output_schema,
+                                            # handoffs=handoffs,
+                                            tracing=tracing,
                                             previous_response_id=previous_response_id)
         return await workflow.execute_activity(
             invoke_open_ai_model,
