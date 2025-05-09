@@ -91,15 +91,12 @@ class ResearchManager:
 
     async def _search(self, item: WebSearchItem) -> str | None:
         input = f"Search term: {item.query}\nReason for searching: {item.reason}"
-        try:
-            result = await Runner.run(
-                self.search_agent,
-                input,
-                run_config=self.run_config,
-            )
-            return str(result.final_output)
-        except Exception:
-            return None
+        result = await Runner.run(
+            self.search_agent,
+            input,
+            run_config=self.run_config,
+        )
+        return str(result.final_output)
 
 
     async def _write_report(self, query: str, search_results: list[str]) -> ReportData:

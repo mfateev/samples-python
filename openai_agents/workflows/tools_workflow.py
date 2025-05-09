@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from temporalio import workflow
 
-from openai_agents.adapters.temporal_model_provider import TemporalModelProvider, activity_as_tool, \
+from openai_agents.adapters.temporal_model_provider import activity_as_tool, \
     ActivityModelStubProvider
 
 # Import our activity, passing it through the sandbox

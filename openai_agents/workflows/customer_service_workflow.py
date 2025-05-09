@@ -2,7 +2,7 @@
 
 from temporalio import workflow
 
-from openai_agents.adapters.temporal_model_provider import TemporalModelProvider
+from openai_agents.adapters.temporal_model_provider import ActivityModelStubProvider
 
 with workflow.unsafe.imports_passed_through():
     from pydantic import BaseModel
