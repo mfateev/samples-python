@@ -4,7 +4,7 @@ from agents.items import TResponseStreamEvent
 from temporalio import workflow
 
 from openai_agents.adapters.invoke_model_activity import OpenAIActivityInput, invoke_open_ai_model, ToolInput, \
-    FunctionToolInput
+    FunctionToolInput, HandoffInput
 
 with workflow.unsafe.imports_passed_through():
     from datetime import timedelta
@@ -143,14 +143,20 @@ class ActivityModel(Model):
                                              strict_json_schema=tool.strict_json_schema)
 
         tool_infos = [make_tool_info(x) for x in tools] if tools is not None else None
-
+        handoff_infos = [HandoffInput(
+            tool_name=x.tool_name,
+            tool_description=x.tool_description,
+            input_json_schema=x.input_json_schema,
+            agent_name=x.agent_name,
+            strict_json_schema=x.strict_json_schema
+        ) for x in handoffs] if handoffs is not None else None
         activity_input = ActivityModelInput(model_name=self.model_name,
                                             system_instructions=system_instructions,
                                             input=input,
                                             model_settings=model_settings,
                                             tools=tool_infos,
                                             output_schema=output_schema,
-                                            # handoffs=handoffs,
+                                            handoffs=handoff_infos,
                                             tracing=tracing,
                                             previous_response_id=previous_response_id)
         return await workflow.execute_activity(

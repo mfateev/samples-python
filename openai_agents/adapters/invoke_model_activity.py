@@ -131,18 +131,24 @@ class FunctionToolInput:
 
 ToolInput = Union[FunctionToolInput, FileSearchTool, WebSearchTool]
 
-class ActivityModelInput(TypedDict, total=False):
-    # model_config = {
-    #     "arbitrary_types_allowed": True,
-    # }
 
+@dataclass
+class HandoffInput:
+    tool_name: str
+    tool_description: str
+    input_json_schema: dict[str, Any]
+    agent_name: str
+    strict_json_schema: bool = True
+
+
+class ActivityModelInput(TypedDict, total=False):
     model_name: str
     system_instructions: Optional[str]
     input: str | list[TResponseInputItem]
     model_settings: ModelSettings
     tools: list[ToolInput]
     output_schema: Optional[AgentOutputSchemaBase]
-    # handoffs: list[Handoff]
+    handoffs: list[HandoffInput]
     tracing: ModelTracing
     previous_response_id: Optional[str]
 
@@ -150,7 +156,7 @@ class ActivityModelInput(TypedDict, total=False):
 @activity.defn
 @_auto_heartbeater
 async def invoke_open_ai_model(input: ActivityModelInput) -> ModelResponse:
-    client = OpenAIResponsesModel(input['model_name'], AsyncOpenAI())
+    model = OpenAIResponsesModel(input['model_name'], AsyncOpenAI())
 
     async def empty_function(ctx: RunContextWrapper[Any], input: str) -> str:
         pass
@@ -171,12 +177,19 @@ async def invoke_open_ai_model(input: ActivityModelInput) -> ModelResponse:
                                     strict_json_schema=tool.strict_json_schema)
 
     tools = [make_tool(x) for x in input.get('tools', [])]
-    return await client.get_response(system_instructions=input.get('system_instructions'),
-                                     input=input['input'],
-                                     model_settings=input['model_settings'],
-                                     tools=tools,
-                                     output_schema=input.get('output_schema'),
-                                     handoffs=[],
-                                     tracing=input['tracing'],
-                                     previous_response_id=input.get('previous_response_id')
-                                     )
+    handoffs = [Handoff(
+        tool_name=x.tool_name,
+        tool_description=x.tool_description,
+        input_json_schema=x.input_json_schema,
+        agent_name=x.agent_name,
+        strict_json_schema=x.strict_json_schema
+    ) for x in input.get('handoffs', [])]
+    return await model.get_response(system_instructions=input.get('system_instructions'),
+                                    input=input['input'],
+                                    model_settings=input['model_settings'],
+                                    tools=tools,
+                                    output_schema=input.get('output_schema'),
+                                    handoffs=handoffs,
+                                    tracing=input['tracing'],
+                                    previous_response_id=input.get('previous_response_id')
+                                    )

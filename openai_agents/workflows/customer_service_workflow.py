@@ -145,7 +145,7 @@ class ProcessUserMessageInput(BaseModel):
 class CustomerServiceWorkflow:
 
     def __init__(self, input_items: list[TResponseInputItem] = None):
-        self.run_config = RunConfig(model_provider=TemporalModelProvider())
+        self.run_config = RunConfig(model_provider=ActivityModelStubProvider())
         self.chat_history = []
         self.current_agent: Agent[AirlineAgentContext] = init_agents()
         self.context = AirlineAgentContext()
