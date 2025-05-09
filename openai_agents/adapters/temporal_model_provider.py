@@ -3,8 +3,8 @@ from __future__ import annotations
 from agents.items import TResponseStreamEvent
 from temporalio import workflow
 
-from openai_agents.adapters.invoke_model_activity import OpenAIActivityInput, invoke_open_ai_model, ToolInput, \
-    FunctionToolInput, HandoffInput
+from openai_agents.adapters.invoke_model_activity import ToolInput, \
+    FunctionToolInput, HandoffInput, AgentOutputSchemaInput
 
 with workflow.unsafe.imports_passed_through():
     from datetime import timedelta
@@ -17,7 +17,7 @@ with workflow.unsafe.imports_passed_through():
         ActivityModelInput, invoke_open_ai_model
     from agents import ModelProvider, Model, OpenAIResponsesModel, Tool, RunContextWrapper, FunctionTool, \
         TResponseInputItem, ModelSettings, AgentOutputSchemaBase, Handoff, ModelTracing, ModelResponse, FileSearchTool, \
-        WebSearchTool, ComputerTool
+        WebSearchTool, AgentOutputSchema
     import httpx
     from fastapi import Body
     from openai import NotGiven, NOT_GIVEN, AsyncStream, AsyncOpenAI
@@ -150,12 +150,23 @@ class ActivityModel(Model):
             agent_name=x.agent_name,
             strict_json_schema=x.strict_json_schema
         ) for x in handoffs] if handoffs is not None else None
+        if not isinstance(output_schema, AgentOutputSchema):
+            raise TypeError(
+                f"Only AgentOutputSchema is supported by Temporal Model, got {type(output_schema).__name__}")
+        agent_output_schema = cast(AgentOutputSchema, output_schema)
+        output_schema_input = None if agent_output_schema is None else AgentOutputSchemaInput(
+            output_type_name=agent_output_schema.name(),
+            is_wrapped=agent_output_schema._is_wrapped,
+            output_schema=agent_output_schema.json_schema() if not agent_output_schema.is_plain_text() else None,
+            strict_json_schema=agent_output_schema.is_strict_json_schema(),
+        )
+
         activity_input = ActivityModelInput(model_name=self.model_name,
                                             system_instructions=system_instructions,
                                             input=input,
                                             model_settings=model_settings,
                                             tools=tool_infos,
-                                            output_schema=output_schema,
+                                            output_schema=output_schema_input,
                                             handoffs=handoff_infos,
                                             tracing=tracing,
                                             previous_response_id=previous_response_id)

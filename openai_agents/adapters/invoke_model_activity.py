@@ -4,8 +4,9 @@ from typing import Union, Optional, List, Literal, Iterable, TypedDict, Any, cas
 import httpx
 from agents import OpenAIResponsesModel, TResponseInputItem, ModelSettings, Tool, AgentOutputSchemaBase, Handoff, \
     ModelTracing, ModelResponse, HandoffInputFilter, FunctionTool, FileSearchTool, WebSearchTool, ComputerTool, \
-    RunContextWrapper
-from openai import AsyncOpenAI, NotGiven, NOT_GIVEN, BaseModel
+    RunContextWrapper, UserError, SpanError, ModelBehaviorError
+from agents.util import _json, _error_tracing
+from openai import AsyncOpenAI, NotGiven, NOT_GIVEN
 from openai._types import Headers, Query, Body
 from openai.types import ResponsesModel, Metadata, Reasoning
 from openai.types.responses import ResponseInputParam, ResponseIncludable, ResponseTextConfigParam, \
@@ -50,52 +51,12 @@ async def invoke_open_ai_client(input: OpenAIActivityInput) -> Response:
 
 @dataclass
 class HandoffInput:
-    """A handoff is when an agent delegates a task to another agent.
-    For example, in a customer support scenario you might have a "triage agent" that determines
-    which agent should handle the user's request, and sub-agents that specialize in different
-    areas like billing, account management, etc.
-    """
-
     tool_name: str
-    """The name of the tool that represents the handoff."""
-
     tool_description: str
-    """The description of the tool that represents the handoff."""
-
     input_json_schema: dict[str, Any]
-    """The JSON schema for the handoff input. Can be empty if the handoff does not take an input.
-    """
-
-    # on_invoke_handoff: Callable[[RunContextWrapper[Any], str], Awaitable[Agent[TContext]]]
-    """The function that invokes the handoff. The parameters passed are:
-    1. The handoff run context
-    2. The arguments from the LLM, as a JSON string. Empty string if input_json_schema is empty.
-
-    Must return an agent.
-    """
-
     agent_name: str
-    """The name of the agent that is being handed off to."""
-
-    input_filter: HandoffInputFilter | None = None
-    """A function that filters the inputs that are passed to the next agent. By default, the new
-    agent sees the entire conversation history. In some cases, you may want to filter inputs e.g.
-    to remove older inputs, or remove tools from existing inputs.
-
-    The function will receive the entire conversation history so far, including the input item
-    that triggered the handoff and a tool call output item representing the handoff tool's output.
-
-    You are free to modify the input history or new items as you see fit. The next agent that
-    runs will receive `handoff_input_data.all_items`.
-
-    IMPORTANT: in streaming mode, we will not stream anything as a result of this function. The
-    items generated before will already have been streamed.
-    """
-
+    # input_filter: HandoffInputFilter | None = None
     strict_json_schema: bool = True
-    """Whether the input JSON schema is in strict mode. We **strongly** recommend setting this to
-    True, as it increases the likelihood of correct JSON input.
-    """
 
 
 @dataclass
@@ -140,6 +101,35 @@ class HandoffInput:
     agent_name: str
     strict_json_schema: bool = True
 
+_WRAPPER_DICT_KEY = "response"
+
+@dataclass
+class AgentOutputSchemaInput(AgentOutputSchemaBase):
+    output_type_name: str | None
+    is_wrapped: bool
+    output_schema: dict[str, Any] | None
+    strict_json_schema: bool
+
+    def is_plain_text(self) -> bool:
+        """Whether the output type is plain text (versus a JSON object)."""
+        return self.output_type_name is None or self.output_type_name == 'str'
+
+    def is_strict_json_schema(self) -> bool:
+        """Whether the JSON schema is in strict mode."""
+        return self.strict_json_schema
+
+    def json_schema(self) -> dict[str, Any]:
+        """The JSON schema of the output type."""
+        if self.is_plain_text():
+            raise UserError("Output type is plain text, so no JSON schema is available")
+        return self.output_schema
+
+    def validate_json(self, json_str: str) -> Any:
+        raise NotImplementedError()
+
+    def name(self) -> str:
+        return self.output_type_name
+
 
 class ActivityModelInput(TypedDict, total=False):
     model_name: str
@@ -147,7 +137,7 @@ class ActivityModelInput(TypedDict, total=False):
     input: str | list[TResponseInputItem]
     model_settings: ModelSettings
     tools: list[ToolInput]
-    output_schema: Optional[AgentOutputSchemaBase]
+    output_schema: Optional[AgentOutputSchemaInput]
     handoffs: list[HandoffInput]
     tracing: ModelTracing
     previous_response_id: Optional[str]
