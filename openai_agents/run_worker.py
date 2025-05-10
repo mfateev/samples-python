@@ -7,8 +7,9 @@ from temporalio.client import Client
 from temporalio.worker import Worker
 
 from agents import TResponseInputItem
+
+from openai_agents.adapters._open_ai_converter import open_ai_data_converter
 from openai_agents.adapters.invoke_model_activity import invoke_open_ai_client, invoke_open_ai_model
-from openai_agents.adapters.open_ai_converter import open_ai_data_converter
 from openai_agents.workflows.agents_as_tools_workflow import AgentsAsToolsWorkflow
 from openai_agents.workflows.get_weather_activity import get_weather
 from openai_agents.workflows.customer_service_workflow import CustomerServiceWorkflow

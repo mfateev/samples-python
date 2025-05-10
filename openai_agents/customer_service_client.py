@@ -1,12 +1,11 @@
 import argparse
 import asyncio
-from ftplib import print_line
 
 from temporalio.client import Client, WorkflowQueryRejectedError, WorkflowUpdateFailedError
 from temporalio.common import WorkflowIDReusePolicy, QueryRejectCondition
 from temporalio.service import RPCError, RPCStatusCode
 
-from openai_agents.adapters.open_ai_converter import open_ai_data_converter
+from openai_agents.adapters._open_ai_converter import open_ai_data_converter
 from openai_agents.workflows.customer_service_workflow import CustomerServiceWorkflow, ProcessUserMessageInput
 
 
@@ -49,7 +48,7 @@ async def main():
             history.extend(new_history)
             print(*new_history, sep="\n")
         except WorkflowUpdateFailedError:
-            print_line("** Stale conversation. Reloading...")
+            print("\n** Stale conversation. Reloading...\n")
             length = len(history)
             history = await handle.query(CustomerServiceWorkflow.get_chat_history,
                                          reject_condition=QueryRejectCondition.NOT_OPEN)

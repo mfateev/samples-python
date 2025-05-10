@@ -6,7 +6,7 @@ from agents import Runner, custom_span, gen_trace_id, trace, RunConfig
 # with workflow.unsafe.imports_passed_through():
 from rich.console import Console
 
-from openai_agents.adapters.temporal_model_provider import TemporalModelProvider
+from openai_agents.adapters.temporal_openai_agents import TemporalModelProvider
 from openai_agents.workflows.research_agents.planner_agent import WebSearchPlan, WebSearchItem, new_planner_agent
 from openai_agents.workflows.research_agents.printer import Printer
 from openai_agents.workflows.research_agents.search_agent import new_search_agent
