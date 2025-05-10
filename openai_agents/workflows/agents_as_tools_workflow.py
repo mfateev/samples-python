@@ -1,9 +1,9 @@
 from temporalio import workflow
 
-from openai_agents.adapters.temporal_model_provider import TemporalModelProvider
 
 with workflow.unsafe.imports_passed_through():
     from agents import Agent, ItemHelpers, MessageOutputItem, Runner, trace, RunConfig
+    from openai_agents.adapters.temporal_openai_agents import TemporalModelProvider
 
 """
 This example shows the agents-as-tools pattern. The frontline agent receives a user message and
