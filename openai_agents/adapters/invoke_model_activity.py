@@ -1,3 +1,4 @@
+import json
 from dataclasses import dataclass
 from typing import Union, Optional, List, Literal, Iterable, TypedDict, Any, cast
 
@@ -61,33 +62,11 @@ class HandoffInput:
 
 @dataclass
 class FunctionToolInput:
-    """A tool that wraps a function. In most cases, you should use  the `function_tool` helpers to
-    create a FunctionTool, as they let you easily wrap a Python function.
-    """
-
     name: str
-    """The name of the tool, as shown to the LLM. Generally the name of the function."""
-
     description: str
-    """A description of the tool, as shown to the LLM."""
-
     params_json_schema: dict[str, Any]
-    """The JSON schema for the tool's parameters."""
-
     # on_invoke_tool: Callable[[RunContextWrapper[Any], str], Awaitable[Any]]
-    """A function that invokes the tool with the given context and parameters. The params passed
-    are:
-    1. The tool run context.
-    2. The arguments from the LLM, as a JSON string.
-
-    You must return a string representation of the tool output, or something we can call `str()` on.
-    In case of errors, you can either raise an Exception (which will cause the run to fail) or
-    return a string error message (which will be sent back to the LLM).
-    """
-
     strict_json_schema: bool = True
-    """Whether the JSON schema is in strict mode. We **strongly** recommend setting this to True,
-    as it increases the likelihood of correct JSON input."""
 
 
 ToolInput = Union[FunctionToolInput, FileSearchTool, WebSearchTool]
@@ -101,7 +80,9 @@ class HandoffInput:
     agent_name: str
     strict_json_schema: bool = True
 
+
 _WRAPPER_DICT_KEY = "response"
+
 
 @dataclass
 class AgentOutputSchemaInput(AgentOutputSchemaBase):
@@ -148,8 +129,16 @@ class ActivityModelInput(TypedDict, total=False):
 async def invoke_open_ai_model(input: ActivityModelInput) -> ModelResponse:
     model = OpenAIResponsesModel(input['model_name'], AsyncOpenAI())
 
-    async def empty_function(ctx: RunContextWrapper[Any], input: str) -> str:
+    async def empty_on_invoke_tool(ctx: RunContextWrapper[Any], input: str) -> str:
         pass
+
+    async def empty_on_invoke_handoff(ctx: RunContextWrapper[Any], input: str) -> Any:
+        pass
+
+    # workaround for https://github.com/pydantic/pydantic/issues/9541
+    # ValidatorIterator returned
+    input_json = json.dumps(input['input'], default=lambda o: str(o))
+    input_input = json.loads(input_json)
 
     def make_tool(tool: ToolInput) -> Tool:
         match tool.name:
@@ -163,7 +152,7 @@ async def invoke_open_ai_model(input: ActivityModelInput) -> ModelResponse:
                 return FunctionTool(name=tool.name,
                                     description=tool.description,
                                     params_json_schema=tool.params_json_schema,
-                                    on_invoke_tool=empty_function,
+                                    on_invoke_tool=empty_on_invoke_tool,
                                     strict_json_schema=tool.strict_json_schema)
 
     tools = [make_tool(x) for x in input.get('tools', [])]
@@ -172,10 +161,11 @@ async def invoke_open_ai_model(input: ActivityModelInput) -> ModelResponse:
         tool_description=x.tool_description,
         input_json_schema=x.input_json_schema,
         agent_name=x.agent_name,
-        strict_json_schema=x.strict_json_schema
+        strict_json_schema=x.strict_json_schema,
+        on_invoke_handoff=empty_on_invoke_handoff,
     ) for x in input.get('handoffs', [])]
     return await model.get_response(system_instructions=input.get('system_instructions'),
-                                    input=input['input'],
+                                    input=input_input,
                                     model_settings=input['model_settings'],
                                     tools=tools,
                                     output_schema=input.get('output_schema'),

@@ -35,14 +35,14 @@ def activity_as_tool(activity: Callable[..., Any]) -> Tool:
     )
 
 
-class ActivityModelStubProvider(ModelProvider):
+class TemporalModelProvider(ModelProvider):
     def get_model(self, model_name: str | None) -> Model:
         if model_name is None:
             model_name = DEFAULT_MODEL
-        return ActivityModel(model_name)
+        return TemporalActivityModel(model_name)
 
 
-class ActivityModel(Model):
+class TemporalActivityModel(Model):
     def __init__(self, model_name: str) -> None:
         self.model_name = model_name
 
