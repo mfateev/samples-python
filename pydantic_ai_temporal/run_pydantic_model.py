@@ -7,8 +7,8 @@ from temporalio.common import WorkflowIDReusePolicy
 from temporalio.contrib.pydantic import pydantic_data_converter
 from temporalio.worker import Worker
 
-from pydanticai.invoke_pydantic_model_activity import invoke_pydantic_model_activity
-from pydanticai.pydantic_model_workflow import PydanticModelWorkflow
+from pydantic_ai_temporal.invoke_pydantic_model_activity import invoke_pydantic_model_activity
+from pydantic_ai_temporal.pydantic_model_workflow import PydanticModelWorkflow
 
 TASK_QUEUE = "pydantic-model-task-queue"
 
