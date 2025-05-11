@@ -26,7 +26,7 @@ class TemporalPydanticModel(models.Model):
             model_settings=model_settings,
             model_request_parameters=model_request_parameters,
         )
-        result = await workflow.execute_activity("invoke_pydantic_model_activity", model_input,
+        result = await workflow.execute_activity(invoke_pydantic_model_activity, model_input,
                                                  start_to_close_timeout=timedelta(seconds=60))
         return result.model_response, result.usage
 
