@@ -12,10 +12,10 @@ from temporalio import activity
 
 
 class PydanticModelInput(BaseModel):
-    model_name: str
     model_config = {
         "arbitrary_types_allowed": True
     }
+    model_name: str
     messages: list[ModelMessage]
     model_settings: Optional[ModelSettings]
     model_request_parameters: ModelRequestParameters

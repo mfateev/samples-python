@@ -10,6 +10,7 @@ from pydantic_ai.usage import Usage
 from temporalio import workflow
 
 from pydanticai import invoke_pydantic_model_activity
+from pydanticai.invoke_pydantic_model_activity import PydanticModelInput
 
 
 class TemporalPydanticModel(models.Model):
@@ -20,7 +21,7 @@ class TemporalPydanticModel(models.Model):
 
     async def request(self, messages: list[ModelMessage], model_settings: ModelSettings | None,
                       model_request_parameters: ModelRequestParameters) -> tuple[ModelResponse, Usage]:
-        model_input = invoke_pydantic_model_activity.PydanticModelInput(
+        model_input = PydanticModelInput(
             model_name=self._model_name,
             messages=messages,
             model_settings=model_settings,
