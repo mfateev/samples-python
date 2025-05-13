@@ -1,20 +1,15 @@
 import json
 from dataclasses import dataclass
-from typing import Union, Optional, List, Literal, Iterable, TypedDict, Any, cast
+from typing import Union, Optional, TypedDict, Any, cast
 
-import httpx
 from agents import OpenAIResponsesModel, TResponseInputItem, ModelSettings, Tool, AgentOutputSchemaBase, Handoff, \
-    ModelTracing, ModelResponse, HandoffInputFilter, FunctionTool, FileSearchTool, WebSearchTool, ComputerTool, \
-    RunContextWrapper, UserError, SpanError, ModelBehaviorError
-from agents.util import _json, _error_tracing
-from openai import AsyncOpenAI, NotGiven, NOT_GIVEN
-from openai._types import Headers, Query, Body
-from openai.types import ResponsesModel, Metadata, Reasoning
-from openai.types.responses import ResponseInputParam, ResponseIncludable, ResponseTextConfigParam, \
-    response_create_params, ToolParam, Response
+    ModelTracing, ModelResponse, FunctionTool, FileSearchTool, WebSearchTool, ComputerTool, \
+    RunContextWrapper, UserError
+from openai import AsyncOpenAI
 from temporalio import activity
 
 from custom_decorator.activity_utils import _auto_heartbeater
+
 
 @dataclass
 class HandoffInput:
