@@ -1,3 +1,4 @@
+import enum
 import json
 from dataclasses import dataclass
 from typing import Union, Optional, TypedDict, Any, cast
@@ -5,6 +6,7 @@ from typing import Union, Optional, TypedDict, Any, cast
 from agents import OpenAIResponsesModel, TResponseInputItem, ModelSettings, Tool, AgentOutputSchemaBase, Handoff, \
     ModelTracing, ModelResponse, FunctionTool, FileSearchTool, WebSearchTool, ComputerTool, \
     RunContextWrapper, UserError
+from agents.models.multi_provider import MultiProvider
 from openai import AsyncOpenAI
 from temporalio import activity
 
@@ -72,23 +74,29 @@ class AgentOutputSchemaInput(AgentOutputSchemaBase):
     def name(self) -> str:
         return self.output_type_name
 
+class ModelTracingInput(enum.IntEnum):
+    """ModelTracing is enum.Enum instead of IntEnum"""
+    DISABLED = 0
+    ENABLED = 1
+    ENABLED_WITHOUT_DATA = 2
+
 
 class ActivityModelInput(TypedDict, total=False):
-    model_name: str
+    model_name: Optional[str]
     system_instructions: Optional[str]
     input: str | list[TResponseInputItem]
     model_settings: ModelSettings
     tools: list[ToolInput]
     output_schema: Optional[AgentOutputSchemaInput]
     handoffs: list[HandoffInput]
-    tracing: ModelTracing
+    tracing: ModelTracingInput
     previous_response_id: Optional[str]
 
 
 @activity.defn
 @_auto_heartbeater
 async def invoke_open_ai_model(input: ActivityModelInput) -> ModelResponse:
-    model = OpenAIResponsesModel(input['model_name'], AsyncOpenAI())
+    model = MultiProvider().get_model(input.get('model_name'))
 
     async def empty_on_invoke_tool(ctx: RunContextWrapper[Any], input: str) -> str:
         pass
@@ -131,6 +139,6 @@ async def invoke_open_ai_model(input: ActivityModelInput) -> ModelResponse:
                                     tools=tools,
                                     output_schema=input.get('output_schema'),
                                     handoffs=handoffs,
-                                    tracing=input['tracing'],
+                                    tracing=ModelTracing(input['tracing']),
                                     previous_response_id=input.get('previous_response_id')
                                     )

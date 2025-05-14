@@ -10,7 +10,6 @@ with workflow.unsafe.imports_passed_through():
     from datetime import timedelta
     from typing import Callable, Any, AsyncIterator, cast
     from agents.function_schema import function_schema
-    from agents.models.openai_provider import DEFAULT_MODEL
     from openai_agents.adapters.invoke_model_activity import ActivityModelInput, invoke_open_ai_model
     from agents import ModelProvider, Model, Tool, RunContextWrapper, FunctionTool, \
         TResponseInputItem, ModelSettings, AgentOutputSchemaBase, Handoff, ModelTracing, ModelResponse, FileSearchTool, \
@@ -37,13 +36,11 @@ def activity_as_tool(activity: Callable[..., Any]) -> Tool:
 
 class TemporalModelProvider(ModelProvider):
     def get_model(self, model_name: str | None) -> Model:
-        if model_name is None:
-            model_name = DEFAULT_MODEL
         return TemporalActivityModel(model_name)
 
 
 class TemporalActivityModel(Model):
-    def __init__(self, model_name: str) -> None:
+    def __init__(self, model_name: str | None) -> None:
         self.model_name = model_name
 
     async def get_response(self, system_instructions: str | None, input: str | list[TResponseInputItem],
@@ -91,7 +88,7 @@ class TemporalActivityModel(Model):
                                             tools=tool_infos,
                                             output_schema=output_schema_input,
                                             handoffs=handoff_infos,
-                                            tracing=tracing,
+                                            tracing=tracing.value,
                                             previous_response_id=previous_response_id)
         return await workflow.execute_activity(
             invoke_open_ai_model,
