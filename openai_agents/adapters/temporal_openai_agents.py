@@ -48,6 +48,20 @@ class TemporalActivityModel(Model):
                            output_schema: AgentOutputSchemaBase | None, handoffs: list[Handoff], tracing: ModelTracing,
                            *, previous_response_id: str | None) -> ModelResponse:
 
+        def get_summary(input: str | list[TResponseInputItem]) -> str:
+            ### Activity summary shown in the UI
+            try:
+                max_size = 100
+                if isinstance(input, str):
+                    return input[:max_size]
+                elif isinstance(input, list):
+                    return input[-1].get("content", "")[:max_size]
+                elif isinstance(input, dict):
+                    return input.get("content", "")[:max_size]
+            except Exception as e:
+                print(f"Error getting summary: {e}")
+            return ""
+
         def make_tool_info(tool: Tool) -> ToolInput:
             match tool.name:
                 case "file_search":
@@ -95,6 +109,7 @@ class TemporalActivityModel(Model):
             activity_input,
             start_to_close_timeout=timedelta(seconds=60),
             heartbeat_timeout=timedelta(seconds=10),
+            summary=get_summary(input),
         )
 
     def stream_response(self, system_instructions: str | None, input: str | list[TResponseInputItem],
