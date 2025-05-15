@@ -2,12 +2,10 @@ from __future__ import annotations
 
 from temporalio import workflow
 
-from openai_agents.adapters.temporal_openai_agents import TemporalModelProvider, activity_as_tool
-
-# Import our activity, passing it through the sandbox
 with workflow.unsafe.imports_passed_through():
     from agents import Agent, Runner, RunConfig
     from openai_agents.workflows.get_weather_activity import get_weather
+    from openai_agents.adapters.temporal_openai_agents import TemporalModelProvider, activity_as_tool
 
 
 @workflow.defn

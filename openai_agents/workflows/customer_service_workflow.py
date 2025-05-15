@@ -2,9 +2,8 @@
 
 from temporalio import workflow
 
-from openai_agents.adapters.temporal_openai_agents import TemporalModelProvider
-
 with workflow.unsafe.imports_passed_through():
+    from openai_agents.adapters.temporal_openai_agents import TemporalModelProvider
     from pydantic import BaseModel
     from agents import (
         Agent,

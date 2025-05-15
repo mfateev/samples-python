@@ -2,16 +2,16 @@ from __future__ import annotations
 
 import asyncio
 
-from agents import Runner, custom_span, gen_trace_id, trace, RunConfig
-# with workflow.unsafe.imports_passed_through():
-from rich.console import Console
+from temporalio import workflow
 
-from openai_agents.adapters.temporal_openai_agents import TemporalModelProvider
-from openai_agents.workflows.research_agents.planner_agent import WebSearchPlan, WebSearchItem, new_planner_agent
-from openai_agents.workflows.research_agents.printer import Printer
-from openai_agents.workflows.research_agents.search_agent import new_search_agent
-from openai_agents.workflows.research_agents.writer_agent import ReportData, new_writer_agent
-
+with workflow.unsafe.imports_passed_through():
+    from agents import Runner, custom_span, gen_trace_id, trace, RunConfig
+    from rich.console import Console
+    from openai_agents.adapters.temporal_openai_agents import TemporalModelProvider
+    from openai_agents.workflows.research_agents.planner_agent import WebSearchPlan, WebSearchItem, new_planner_agent
+    from openai_agents.workflows.research_agents.printer import Printer
+    from openai_agents.workflows.research_agents.search_agent import new_search_agent
+    from openai_agents.workflows.research_agents.writer_agent import ReportData, new_writer_agent
 
 class ResearchManager:
     def __init__(self):
