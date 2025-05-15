@@ -3,11 +3,10 @@ import json
 from dataclasses import dataclass
 from typing import Union, Optional, TypedDict, Any, cast
 
-from agents import OpenAIResponsesModel, TResponseInputItem, ModelSettings, Tool, AgentOutputSchemaBase, Handoff, \
+from agents import TResponseInputItem, ModelSettings, Tool, AgentOutputSchemaBase, Handoff, \
     ModelTracing, ModelResponse, FunctionTool, FileSearchTool, WebSearchTool, ComputerTool, \
     RunContextWrapper, UserError
 from agents.models.multi_provider import MultiProvider
-from openai import AsyncOpenAI
 from temporalio import activity
 
 from custom_decorator.activity_utils import _auto_heartbeater
@@ -42,9 +41,6 @@ class HandoffInput:
     input_json_schema: dict[str, Any]
     agent_name: str
     strict_json_schema: bool = True
-
-
-_WRAPPER_DICT_KEY = "response"
 
 
 @dataclass
@@ -91,7 +87,6 @@ class ActivityModelInput(TypedDict, total=False):
     handoffs: list[HandoffInput]
     tracing: ModelTracingInput
     previous_response_id: Optional[str]
-
 
 @activity.defn
 @_auto_heartbeater

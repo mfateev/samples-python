@@ -141,7 +141,7 @@ class ProcessUserMessageInput(BaseModel):
     chat_length: int
 
 
-@workflow.defn(sandboxed=False)
+@workflow.defn
 class CustomerServiceWorkflow:
 
     def __init__(self, input_items: list[TResponseInputItem] = None):
