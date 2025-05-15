@@ -4,7 +4,6 @@ These are mostly Pydantic types. NotGiven requires special handling.
 """
 from __future__ import annotations
 
-import json
 from typing import Any, Optional, Type, TypeVar
 
 import temporalio.api.common.v1
@@ -49,33 +48,15 @@ class _OpenAIJSONPlainPayloadConverter(EncodingPayloadConverter):
 
     def to_payload(self, value: Any) -> Optional[temporalio.api.common.v1.Payload]:
         """See base class.
-
-        Uses ``pydantic_core.to_json`` to serialize ``value`` to JSON.
-
-        See
-        https://docs.pydantic.dev/latest/api/pydantic_core/#pydantic_core.to_json.
+        Needs _WrapperModel configure arbitrary_types_allowed=True
         """
 
-        def strip_not_given(obj: Any) -> Any:
-            if isinstance(obj, dict):
-                return {
-                    k: strip_not_given(v)
-                    for k, v in obj.items()
-                    if v != NOT_GIVEN and v is not None
-                }
-            elif isinstance(obj, list):
-                return [strip_not_given(v) for v in obj if v != NOT_GIVEN and v is not None]
-            else:
-                return obj
-
         wrapper = _WrapperModel[type(value)](root=value)
-        dump = wrapper.model_dump(mode="python", by_alias=True)
-        # NotGiven values are not JSON serializable, so we need to strip them out
-        dump = strip_not_given(dump)
-        data = json.dumps(dump, default=lambda o: str(o))
+        data = wrapper.model_dump_json().encode()
+
         return temporalio.api.common.v1.Payload(
             metadata={"encoding": self.encoding.encode()},
-            data=data.encode()
+            data=data
         )
 
     def from_payload(
