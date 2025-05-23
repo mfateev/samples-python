@@ -9,8 +9,7 @@ from pydantic_ai.settings import ModelSettings
 from pydantic_ai.usage import Usage
 from temporalio import workflow
 
-from pydanticai import invoke_pydantic_model_activity
-from pydanticai.invoke_pydantic_model_activity import PydanticModelInput
+from pydanticai.invoke_pydantic_model_activity import PydanticModelInput, invoke_pydantic_model_activity
 
 
 class TemporalPydanticModel(models.Model):
