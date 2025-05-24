@@ -5,9 +5,8 @@ import asyncio
 from temporalio import workflow
 
 with workflow.unsafe.imports_passed_through():
-    from agents import Runner, custom_span, gen_trace_id, trace, RunConfig
+    from agents import Runner, custom_span, gen_trace_id, trace
     from rich.console import Console
-    from openai_agents.adapters.temporal_openai_agents import TemporalModelProvider
     from openai_agents.workflows.research_agents.planner_agent import WebSearchPlan, WebSearchItem, new_planner_agent
     from openai_agents.workflows.research_agents.printer import Printer
     from openai_agents.workflows.research_agents.search_agent import new_search_agent
@@ -17,7 +16,6 @@ class ResearchManager:
     def __init__(self):
         self.console = Console()
         self.printer = Printer(self.console)
-        self.run_config = RunConfig(model_provider=TemporalModelProvider())
         self.search_agent = new_search_agent()
         self.planner_agent = new_planner_agent()
         self.writer_agent = new_writer_agent()
@@ -61,7 +59,6 @@ class ResearchManager:
         result = await Runner.run(
             self.planner_agent,
             f"Query: {query}",
-            run_config=self.run_config,
         )
         self.printer.update_item(
             "planning",
@@ -77,7 +74,7 @@ class ResearchManager:
             num_completed = 0
             tasks = [asyncio.create_task(self._search(item)) for item in search_plan.searches]
             results = []
-            for task in asyncio.as_completed(tasks):
+            for task in workflow.as_completed(tasks):
                 result = await task
                 if result is not None:
                     results.append(result)
@@ -94,7 +91,6 @@ class ResearchManager:
         result = await Runner.run(
             self.search_agent,
             input,
-            run_config=self.run_config,
         )
         return str(result.final_output)
 
@@ -105,7 +101,6 @@ class ResearchManager:
         result = await Runner.run(
             self.writer_agent,
             input,
-            run_config=self.run_config,
         )
         # update_messages = [
         #     "Thinking about report...",

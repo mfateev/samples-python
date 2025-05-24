@@ -18,6 +18,5 @@ class ToolsWorkflow:
             tools=[activity_as_tool(get_weather)],
         )
 
-        config = RunConfig(model_provider=TemporalModelProvider())
-        result = await Runner.run(agent, input=question, run_config=config)
+        result = await Runner.run(agent, input=question)
         return result.final_output

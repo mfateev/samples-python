@@ -9,13 +9,10 @@ with workflow.unsafe.imports_passed_through():
 class HelloWorldAgent:
     @workflow.run
     async def run(self, prompt: str) -> str:
-
         agent = Agent(
             name="Assistant",
             instructions="You only respond in haikus.",
         )
-        config = RunConfig(model_provider=TemporalModelProvider())
-
         with trace("HellowWorld", group_id=workflow.info().workflow_id):
-            result = await Runner.run(agent, input=prompt, run_config=config)
+            result = await Runner.run(agent, input=prompt)
         return result.final_output

@@ -35,5 +35,4 @@ async def heartbeat_every(delay: float, *details: Any) -> None:
     # Heartbeat every so often while not cancelled
     while True:
         await asyncio.sleep(delay)
-        print(f"Heartbeating at {datetime.now()}")
         activity.heartbeat(*details)

@@ -3,7 +3,6 @@
 from temporalio import workflow
 
 with workflow.unsafe.imports_passed_through():
-    from openai_agents.adapters.temporal_openai_agents import TemporalModelProvider
     from pydantic import BaseModel
     from agents import (
         Agent,
@@ -17,8 +16,7 @@ with workflow.unsafe.imports_passed_through():
         TResponseInputItem,
         function_tool,
         handoff,
-        trace, RunConfig,
-    )
+        trace, )
     from agents.extensions.handoff_prompt import RECOMMENDED_PROMPT_PREFIX
 
 
@@ -144,7 +142,6 @@ class ProcessUserMessageInput(BaseModel):
 class CustomerServiceWorkflow:
 
     def __init__(self, input_items: list[TResponseInputItem] = None):
-        self.run_config = RunConfig(model_provider=TemporalModelProvider())
         self.chat_history = []
         self.current_agent: Agent[AirlineAgentContext] = init_agents()
         self.context = AirlineAgentContext()
@@ -167,8 +164,7 @@ class CustomerServiceWorkflow:
         self.chat_history.append(f"User: {input.user_input}")
         with trace("Customer service", group_id=workflow.info().workflow_id):
             self.input_items.append({"content": input.user_input, "role": "user"})
-            result = await Runner.run(self.current_agent, self.input_items, context=self.context,
-                                      run_config=self.run_config)
+            result = await Runner.run(self.current_agent, self.input_items, context=self.context)
 
             for new_item in result.new_items:
                 agent_name = new_item.agent.name

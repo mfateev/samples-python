@@ -1,6 +1,5 @@
 from temporalio import workflow
 
-
 with workflow.unsafe.imports_passed_through():
     from agents import Agent, ItemHelpers, MessageOutputItem, Runner, trace, RunConfig
     from openai_agents.adapters.temporal_openai_agents import TemporalModelProvider
@@ -67,14 +66,12 @@ def synthesizer_agent() -> Agent:
 class AgentsAsToolsWorkflow:
     @workflow.run
     async def run(self, msg: str) -> str:
-        config = RunConfig(model_provider=TemporalModelProvider())
-
         # Run the entire orchestration in a single trace
         with trace("Orchestrator evaluator"):
             orchestrator = orchestrator_agent()
             synthesizer = synthesizer_agent()
 
-            orchestrator_result = await Runner.run(orchestrator, msg, run_config=config)
+            orchestrator_result = await Runner.run(orchestrator, msg)
 
             for item in orchestrator_result.new_items:
                 if isinstance(item, MessageOutputItem):
@@ -83,7 +80,7 @@ class AgentsAsToolsWorkflow:
                         print(f"  - Translation step: {text}")
 
             synthesizer_result = await Runner.run(
-                synthesizer, orchestrator_result.to_input_list(), run_config=config
+                synthesizer, orchestrator_result.to_input_list()
             )
 
         return synthesizer_result.final_output
