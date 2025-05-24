@@ -91,6 +91,7 @@ class ActivityModelInput(TypedDict, total=False):
 @activity.defn
 @_auto_heartbeater
 async def invoke_open_ai_model(input: ActivityModelInput) -> ModelResponse:
+    # TODO: Is model caching needed here?
     model = MultiProvider().get_model(input.get('model_name'))
 
     async def empty_on_invoke_tool(ctx: RunContextWrapper[Any], input: str) -> str:

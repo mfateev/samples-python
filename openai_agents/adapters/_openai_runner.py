@@ -1,12 +1,19 @@
 from dataclasses import replace
+from typing import Callable
 
-from agents import Runner, Agent, TContext, TResponseInputItem, RunHooks, RunConfig, RunResultStreaming, RunResult
+from agents import Runner, Agent, TContext, TResponseInputItem, RunHooks, RunConfig, RunResultStreaming, RunResult, \
+    Tool
 from agents.run import DEFAULT_MAX_TURNS, DEFAULT_RUNNER, DefaultRunner
-from requests.adapters import BaseAdapter
 from temporalio import workflow
-from temporalio.workflow import unsafe
 
-from openai_agents.adapters.temporal_openai_agents import TemporalActivityModel
+from openai_agents.adapters._temporal_model_stub import _TemporalModelStub
+from openai_agents.adapters.temporal_tools import activity_as_tool
+
+
+# TODO: Uncomment when Agent.tools type accepts Callable
+# def _activities_as_tools(tools: list[Tool]) -> list[Tool]:
+#     """Convert activities to tools."""
+#     return [activity_as_tool(tool) if isinstance(tool, Callable) else tool for tool in tools]
 
 
 class TemporalOpenAIRunner(Runner):
@@ -37,7 +44,12 @@ class TemporalOpenAIRunner(Runner):
 
         if run_config.model is not None and not isinstance(run_config.model, str):
             raise ValueError("Temporal workflows require a model name to be a string in the run config.")
-        updated_run_config = replace(run_config, model=TemporalActivityModel(run_config.model))
+        updated_run_config = replace(run_config, model=_TemporalModelStub(run_config.model))
+
+        # TODO: Uncomment when Agent.tools type accepts Callable
+        # tools = _activities_as_tools(starting_agent.tools) if starting_agent.tools else None
+        # updated_starting_agent = replace(starting_agent, tools=tools)
+
         return await self._runner._run_impl(starting_agent=starting_agent, input=input, context=context,
                                             max_turns=max_turns,
                                             hooks=hooks, run_config=updated_run_config,

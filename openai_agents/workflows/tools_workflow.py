@@ -2,10 +2,11 @@ from __future__ import annotations
 
 from temporalio import workflow
 
+from openai_agents.adapters.temporal_tools import activity_as_tool, activities_as_tools
+
 with workflow.unsafe.imports_passed_through():
-    from agents import Agent, Runner, RunConfig
+    from agents import Agent, Runner
     from openai_agents.workflows.get_weather_activity import get_weather
-    from openai_agents.adapters.temporal_openai_agents import TemporalModelProvider, activity_as_tool
 
 
 @workflow.defn
@@ -15,7 +16,9 @@ class ToolsWorkflow:
         agent = Agent(
             name="Hello world",
             instructions="You are a helpful agent.",
-            tools=[activity_as_tool(get_weather)],
+            # tools=[get_weather], # TODO: Discuss if tools should be list[Any].
+            tools=activities_as_tools(get_weather),
+            # tools=[activity_as_tool(get_weather)], # This is an alternative way to add an activity as a tool.
         )
 
         result = await Runner.run(agent, input=question)

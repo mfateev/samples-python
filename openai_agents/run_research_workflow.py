@@ -3,7 +3,7 @@ import asyncio
 from temporalio.client import Client
 from temporalio.common import WorkflowIDReusePolicy
 
-from openai_agents.adapters._open_ai_converter import open_ai_data_converter
+from openai_agents.adapters.open_ai_data_converter import open_ai_data_converter
 from openai_agents.workflows.research_bot_workflow import ResearchWorkflow
 
 

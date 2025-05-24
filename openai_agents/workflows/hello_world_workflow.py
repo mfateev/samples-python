@@ -1,8 +1,7 @@
 from temporalio import workflow
 
 with workflow.unsafe.imports_passed_through():
-    from openai_agents.adapters.temporal_openai_agents import TemporalModelProvider
-    from agents import Agent, Runner, RunConfig, trace
+    from agents import Agent, Runner, trace
 
 
 @workflow.defn

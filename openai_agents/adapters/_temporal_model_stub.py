@@ -8,38 +8,16 @@ from openai_agents.adapters.invoke_model_activity import ToolInput, \
 
 with workflow.unsafe.imports_passed_through():
     from datetime import timedelta
-    from typing import Callable, Any, AsyncIterator, cast
-    from agents.function_schema import function_schema
+    from typing import AsyncIterator, cast
     from openai_agents.adapters.invoke_model_activity import ActivityModelInput, invoke_open_ai_model
-    from agents import ModelProvider, Model, Tool, RunContextWrapper, FunctionTool, \
-        TResponseInputItem, ModelSettings, AgentOutputSchemaBase, Handoff, ModelTracing, ModelResponse, FileSearchTool, \
+    from agents import Model, Tool, TResponseInputItem, ModelSettings, AgentOutputSchemaBase, Handoff, ModelTracing, \
+        ModelResponse, FileSearchTool, \
         WebSearchTool, AgentOutputSchema
 
 
-def activity_as_tool(activity: Callable[..., Any]) -> Tool:
-    async def run_activity(ctx: RunContextWrapper[Any], input: str) -> Any:
-        return str(await workflow.execute_activity(
-            activity,
-            input,
-            start_to_close_timeout=timedelta(seconds=10),
-        ))
+class _TemporalModelStub(Model):
+    """ A stub that allows invoking models as Temporal activities."""
 
-    schema = function_schema(activity)
-    return FunctionTool(
-        name=schema.name,
-        description=schema.description or "",
-        params_json_schema=schema.params_json_schema,
-        on_invoke_tool=run_activity,
-        strict_json_schema=True,
-    )
-
-
-class TemporalModelProvider(ModelProvider):
-    def get_model(self, model_name: str | None) -> Model:
-        return TemporalActivityModel(model_name)
-
-
-class TemporalActivityModel(Model):
     def __init__(self, model_name: str | None) -> None:
         self.model_name = model_name
 
