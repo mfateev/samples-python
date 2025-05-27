@@ -70,6 +70,7 @@ class AgentOutputSchemaInput(AgentOutputSchemaBase):
     def name(self) -> str:
         return self.output_type_name
 
+
 class ModelTracingInput(enum.IntEnum):
     """ModelTracing is enum.Enum instead of IntEnum"""
     DISABLED = 0
@@ -88,9 +89,10 @@ class ActivityModelInput(TypedDict, total=False):
     tracing: ModelTracingInput
     previous_response_id: Optional[str]
 
+
 @activity.defn
 @_auto_heartbeater
-async def invoke_open_ai_model(input: ActivityModelInput) -> ModelResponse:
+async def invoke_model_activity(input: ActivityModelInput) -> ModelResponse:
     # TODO: Is model caching needed here?
     model = MultiProvider().get_model(input.get('model_name'))
 

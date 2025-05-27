@@ -5,7 +5,7 @@ from temporalio.client import Client
 from temporalio.exceptions import ApplicationError
 from temporalio.worker import Worker
 
-from context_propagation.interceptor import ContextPropagationInterceptor
+from context_propagation.interceptor import TraceInterceptor
 from context_propagation.shared import user_id
 from context_propagation.workflows import SayHelloWorkflow
 
@@ -22,7 +22,7 @@ async def test_workflow_with_context_propagator(client: Client):
 
     # Replace interceptors in client
     new_config = client.config()
-    new_config["interceptors"] = [ContextPropagationInterceptor()]
+    new_config["interceptors"] = [TraceInterceptor()]
     client = Client(**new_config)
     task_queue = f"tq-{uuid.uuid4()}"
 

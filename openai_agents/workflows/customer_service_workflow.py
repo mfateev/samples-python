@@ -16,7 +16,7 @@ with workflow.unsafe.imports_passed_through():
         TResponseInputItem,
         function_tool,
         handoff,
-        trace, )
+        custom_span, )
     from agents.extensions.handoff_prompt import RECOMMENDED_PROMPT_PREFIX
 
 
@@ -162,7 +162,7 @@ class CustomerServiceWorkflow:
     async def process_user_message(self, input: ProcessUserMessageInput) -> list[str]:
         length = len(self.chat_history)
         self.chat_history.append(f"User: {input.user_input}")
-        with trace("Customer service", group_id=workflow.info().workflow_id):
+        with custom_span("Customer service"):
             self.input_items.append({"content": input.user_input, "role": "user"})
             result = await Runner.run(self.current_agent, self.input_items, context=self.context)
 

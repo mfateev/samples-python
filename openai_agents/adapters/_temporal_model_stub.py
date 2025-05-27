@@ -1,15 +1,14 @@
 from __future__ import annotations
 
-from agents.items import TResponseStreamEvent
 from temporalio import workflow
 
-from openai_agents.adapters.invoke_model_activity import ToolInput, \
-    FunctionToolInput, HandoffInput, AgentOutputSchemaInput
-
 with workflow.unsafe.imports_passed_through():
+    from agents.items import TResponseStreamEvent
+    from openai_agents.adapters.invoke_model_activity import ToolInput, \
+        FunctionToolInput, HandoffInput, AgentOutputSchemaInput
     from datetime import timedelta
     from typing import AsyncIterator, cast
-    from openai_agents.adapters.invoke_model_activity import ActivityModelInput, invoke_open_ai_model
+    from openai_agents.adapters.invoke_model_activity import ActivityModelInput, invoke_model_activity
     from agents import Model, Tool, TResponseInputItem, ModelSettings, AgentOutputSchemaBase, Handoff, ModelTracing, \
         ModelResponse, FileSearchTool, \
         WebSearchTool, AgentOutputSchema
@@ -83,7 +82,7 @@ class _TemporalModelStub(Model):
                                             tracing=tracing.value,
                                             previous_response_id=previous_response_id)
         return await workflow.execute_activity(
-            invoke_open_ai_model,
+            invoke_model_activity,
             activity_input,
             start_to_close_timeout=timedelta(seconds=60),
             heartbeat_timeout=timedelta(seconds=10),

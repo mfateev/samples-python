@@ -2,13 +2,13 @@ from __future__ import annotations
 
 import asyncio
 
-from agents import set_default_runner
 from temporalio.client import Client
 from temporalio.worker import Worker
 
-from openai_agents.adapters._openai_runner import TemporalOpenAIRunner
-from openai_agents.adapters.invoke_model_activity import invoke_open_ai_model
+from openai_agents.adapters.invoke_model_activity import invoke_model_activity
 from openai_agents.adapters.open_ai_data_converter import open_ai_data_converter
+from openai_agents.adapters.temporal_openai_agents import set_open_ai_agent_temporal_overrides
+from openai_agents.adapters.trace_interceptor import OpenAIAgentsTracingInterceptor
 from openai_agents.workflows.agents_as_tools_workflow import AgentsAsToolsWorkflow
 from openai_agents.workflows.customer_service_workflow import CustomerServiceWorkflow
 from openai_agents.workflows.get_weather_activity import get_weather
@@ -18,22 +18,23 @@ from openai_agents.workflows.tools_workflow import ToolsWorkflow
 
 
 async def main():
-    set_default_runner(TemporalOpenAIRunner())
+    with set_open_ai_agent_temporal_overrides():
 
-    # Create client connected to server at the given address
-    client = await Client.connect("localhost:7233",
-                                  data_converter=open_ai_data_converter)
+        # Create client connected to server at the given address
+        client = await Client.connect("localhost:7233",
+                                      data_converter=open_ai_data_converter)
 
-    # with concurrent.futures.ThreadPoolExecutor(max_workers=100) as activity_executor:
-    worker = Worker(
-        client,
-        task_queue="my-task-queue",
-        workflows=[HelloWorldAgent, ToolsWorkflow, ResearchWorkflow, CustomerServiceWorkflow,
-                   AgentsAsToolsWorkflow],
-        activities=[invoke_open_ai_model, get_weather],
-        # activity_executor=activity_executor,
-    )
-    await worker.run()
+        # with concurrent.futures.ThreadPoolExecutor(max_workers=100) as activity_executor:
+        worker = Worker(
+            client,
+            task_queue="my-task-queue",
+            workflows=[HelloWorldAgent, ToolsWorkflow, ResearchWorkflow, CustomerServiceWorkflow,
+                       AgentsAsToolsWorkflow],
+            activities=[invoke_model_activity, get_weather],
+            # activity_executor=activity_executor,
+            interceptors=[OpenAIAgentsTracingInterceptor()]
+        )
+        await worker.run()
 
 
 if __name__ == "__main__":
