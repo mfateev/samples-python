@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 
-from agents import function_tool
 from openai import BaseModel
 from temporalio import activity
 

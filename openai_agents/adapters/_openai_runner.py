@@ -1,5 +1,4 @@
 from dataclasses import replace
-from typing import Callable
 
 from agents import (
     Agent,
@@ -9,14 +8,12 @@ from agents import (
     RunResult,
     RunResultStreaming,
     TContext,
-    Tool,
     TResponseInputItem,
 )
 from agents.run import DEFAULT_MAX_TURNS, DEFAULT_RUNNER, DefaultRunner
 from temporalio import workflow
 
 from openai_agents.adapters._temporal_model_stub import _TemporalModelStub
-from openai_agents.adapters.temporal_tools import activity_as_tool
 
 # TODO: Uncomment when Agent.tools type accepts Callable
 # def _activities_as_tools(tools: list[Tool]) -> list[Tool]:

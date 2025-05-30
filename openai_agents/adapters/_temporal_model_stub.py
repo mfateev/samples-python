@@ -64,22 +64,21 @@ class _TemporalModelStub(Model):
             return ""
 
         def make_tool_info(tool: Tool) -> ToolInput:
-            match tool.name:
-                case "file_search":
-                    return cast(FileSearchTool, tool)
-                case "web_search_preview":
-                    return cast(WebSearchTool, tool)
-                case "computer_search_preview":
-                    raise NotImplementedError(
-                        "Computer search preview is not supported in Temporal model"
-                    )
-                case _:
-                    return FunctionToolInput(
-                        name=tool.name,
-                        description=tool.description,
-                        params_json_schema=tool.params_json_schema,
-                        strict_json_schema=tool.strict_json_schema,
-                    )
+            if tool.name == "file_search":
+                return cast(FileSearchTool, tool)
+            elif tool.name == "web_search_preview":
+                return cast(WebSearchTool, tool)
+            elif tool.name == "computer_search_preview":
+                raise NotImplementedError(
+                    "Computer search preview is not supported in Temporal model"
+                )
+            else:
+                return FunctionToolInput(
+                    name=tool.name,
+                    description=tool.description,
+                    params_json_schema=tool.params_json_schema,
+                    strict_json_schema=tool.strict_json_schema,
+                )
 
         tool_infos = [make_tool_info(x) for x in tools] if tools is not None else None
         handoff_infos = (

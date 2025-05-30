@@ -21,7 +21,7 @@ from agents import (
 from agents.models.multi_provider import MultiProvider
 from temporalio import activity
 
-from custom_decorator.activity_utils import _auto_heartbeater
+from openai_agents.adapters._heartbeat_decorator import _auto_heartbeater
 
 
 @dataclass
@@ -121,21 +121,20 @@ async def invoke_model_activity(input: ActivityModelInput) -> ModelResponse:
     input_input = json.loads(input_json)
 
     def make_tool(tool: ToolInput) -> Tool:
-        match tool.name:
-            case "file_search":
-                return cast(FileSearchTool, tool)
-            case "web_search_preview":
-                return cast(WebSearchTool, tool)
-            case "computer_search_preview":
-                return cast(ComputerTool, tool)
-            case _:
-                return FunctionTool(
-                    name=tool.name,
-                    description=tool.description,
-                    params_json_schema=tool.params_json_schema,
-                    on_invoke_tool=empty_on_invoke_tool,
-                    strict_json_schema=tool.strict_json_schema,
-                )
+        if tool.name == "file_search":
+            return cast(FileSearchTool, tool)
+        elif tool.name == "web_search_preview":
+            return cast(WebSearchTool, tool)
+        elif tool.name == "computer_search_preview":
+            return cast(ComputerTool, tool)
+        else:
+            return FunctionTool(
+                name=tool.name,
+                description=tool.description,
+                params_json_schema=tool.params_json_schema,
+                on_invoke_tool=empty_on_invoke_tool,
+                strict_json_schema=tool.strict_json_schema,
+            )
 
     tools = [make_tool(x) for x in input.get("tools", [])]
     handoffs = [
