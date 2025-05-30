@@ -1,8 +1,11 @@
 import uuid
 from typing import Any
 
-from agents import TracingProcessor, Trace, SpanData
-from agents.tracing import TraceProvider, get_trace_provider  # TODO: TraceProvider is not declared in __all__
+from agents import SpanData, Trace, TracingProcessor
+from agents.tracing import (  # TODO: TraceProvider is not declared in __all__
+    TraceProvider,
+    get_trace_provider,
+)
 from agents.tracing.spans import Span
 from temporalio import workflow
 from temporalio.workflow import ReadOnlyContextError
@@ -14,14 +17,14 @@ class ActivitySpanData(SpanData):
     """
 
     def __init__(
-            self,
-            activity_id: str,
-            activity_type: str,
-            task_queue: str,
-            schedule_to_close_timeout: float | None = None,
-            schedule_to_start_timeout: float | None = None,
-            start_to_close_timeout: float | None = None,
-            heartbeat_timeout: float | None = None,
+        self,
+        activity_id: str,
+        activity_type: str,
+        task_queue: str,
+        schedule_to_close_timeout: float | None = None,
+        schedule_to_start_timeout: float | None = None,
+        start_to_close_timeout: float | None = None,
+        heartbeat_timeout: float | None = None,
     ):
         self.activity_id = activity_id
         self.activity_type = activity_type
@@ -49,13 +52,13 @@ class ActivitySpanData(SpanData):
 
 
 def activity_span(
-        activity_id: str,
-        activity_type: str,
-        task_queue: str,
-        # schedule_to_close_timeout: float,
-        # schedule_to_start_timeout: float,
-        start_to_close_timeout: float,
-        # heartbeat_timeout: float,
+    activity_id: str,
+    activity_type: str,
+    task_queue: str,
+    # schedule_to_close_timeout: float,
+    # schedule_to_start_timeout: float,
+    start_to_close_timeout: float,
+    # heartbeat_timeout: float,
 ) -> Span[ActivitySpanData]:
     return get_trace_provider().create_span(
         span_data=ActivitySpanData(
@@ -118,7 +121,9 @@ class TemporalTraceProvider(TraceProvider):
     def __init__(self):
         super().__init__()
         self._original_provider = get_trace_provider()
-        self._multi_processor = _TemporalTracingProcessor(self._original_provider._multi_processor)
+        self._multi_processor = _TemporalTracingProcessor(
+            self._original_provider._multi_processor
+        )
 
     def time_iso(self) -> str:
         if workflow.in_workflow():

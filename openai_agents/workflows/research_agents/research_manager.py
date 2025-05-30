@@ -8,10 +8,18 @@ from temporalio import workflow
 with workflow.unsafe.imports_passed_through():
     from agents import Runner, custom_span, get_current_trace
     from rich.console import Console
-    from openai_agents.workflows.research_agents.planner_agent import WebSearchPlan, WebSearchItem, new_planner_agent
+
+    from openai_agents.workflows.research_agents.planner_agent import (
+        WebSearchItem,
+        WebSearchPlan,
+        new_planner_agent,
+    )
     from openai_agents.workflows.research_agents.printer import Printer
     from openai_agents.workflows.research_agents.search_agent import new_search_agent
-    from openai_agents.workflows.research_agents.writer_agent import ReportData, new_writer_agent
+    from openai_agents.workflows.research_agents.writer_agent import (
+        ReportData,
+        new_writer_agent,
+    )
 
 
 class ResearchManager:
@@ -71,7 +79,9 @@ class ResearchManager:
             self.printer.update_item("searching", "Searching...")
             num_completed = 0
 
-            tasks = [asyncio.create_task(self._search(item)) for item in search_plan.searches]
+            tasks = [
+                asyncio.create_task(self._search(item)) for item in search_plan.searches
+            ]
             results = []
             for task in workflow.as_completed(tasks):
                 result = await task

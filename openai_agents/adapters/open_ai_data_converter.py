@@ -9,8 +9,8 @@ from typing import Any, Optional, Type, TypeVar
 import temporalio.api.common.v1
 from agents import Usage
 from agents.items import TResponseOutputItem
-from openai import BaseModel, NOT_GIVEN
-from pydantic import TypeAdapter, RootModel
+from openai import NOT_GIVEN, BaseModel
+from pydantic import RootModel, TypeAdapter
 from temporalio.converter import (
     CompositePayloadConverter,
     DataConverter,
@@ -55,14 +55,13 @@ class _OpenAIJSONPlainPayloadConverter(EncodingPayloadConverter):
         data = wrapper.model_dump_json().encode()
 
         return temporalio.api.common.v1.Payload(
-            metadata={"encoding": self.encoding.encode()},
-            data=data
+            metadata={"encoding": self.encoding.encode()}, data=data
         )
 
     def from_payload(
-            self,
-            payload: temporalio.api.common.v1.Payload,
-            type_hint: Optional[Type] = None,
+        self,
+        payload: temporalio.api.common.v1.Payload,
+        type_hint: Optional[Type] = None,
     ) -> Any:
         _type_hint = type_hint if type_hint is not None else Any
         wrapper = _WrapperModel[_type_hint]
@@ -72,7 +71,10 @@ class _OpenAIJSONPlainPayloadConverter(EncodingPayloadConverter):
         #
         # in the agents/items.py
         wrapper.model_rebuild(
-            _types_namespace={"TResponseOutputItem": TResponseOutputItem, "Usage": Usage}
+            _types_namespace={
+                "TResponseOutputItem": TResponseOutputItem,
+                "Usage": Usage,
+            }
         )
         return TypeAdapter(wrapper).validate_json(payload.data.decode()).root
 
@@ -97,7 +99,5 @@ class OpenAIPayloadConverter(CompositePayloadConverter):
         )
 
 
-open_ai_data_converter = DataConverter(
-    payload_converter_class=OpenAIPayloadConverter
-)
+open_ai_data_converter = DataConverter(payload_converter_class=OpenAIPayloadConverter)
 """Open AI Agent library types data converter"""

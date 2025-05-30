@@ -17,11 +17,13 @@ async def main():
     )
 
     # Execute a workflow
-    result = await client.execute_workflow(ResearchWorkflow.run,
-                                           "Caribbean vacation spots in April, optimizing for surfing, hiking and water sports",
-                                           id="research-workflow",
-                                           task_queue="my-task-queue",
-                                           id_reuse_policy=WorkflowIDReusePolicy.TERMINATE_IF_RUNNING)
+    result = await client.execute_workflow(
+        ResearchWorkflow.run,
+        "Caribbean vacation spots in April, optimizing for surfing, hiking and water sports",
+        id="research-workflow",
+        task_queue="my-task-queue",
+        id_reuse_policy=WorkflowIDReusePolicy.TERMINATE_IF_RUNNING,
+    )
 
     print(f"Result: {result}")
 

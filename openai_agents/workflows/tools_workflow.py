@@ -2,10 +2,11 @@ from __future__ import annotations
 
 from temporalio import workflow
 
-from openai_agents.adapters.temporal_tools import activity_as_tool, activities_as_tools
+from openai_agents.adapters.temporal_tools import activities_as_tools, activity_as_tool
 
 with workflow.unsafe.imports_passed_through():
     from agents import Agent, Runner
+
     from openai_agents.workflows.get_weather_activity import get_weather
 
 

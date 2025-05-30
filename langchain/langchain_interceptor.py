@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 import asyncio
 from contextvars import copy_context
 
@@ -22,8 +23,10 @@ with workflow.unsafe.imports_passed_through():
 # Header key for LangChain context
 LANGCHAIN_CONTEXT_KEY = "langchain-context"
 
+
 class _InputWithHeaders(Protocol):
     headers: Mapping[str, temporalio.api.common.v1.Payload]
+
 
 def set_header_from_context(
     input: _InputWithHeaders, payload_converter: temporalio.converter.PayloadConverter
@@ -37,6 +40,7 @@ def set_header_from_context(
             LANGCHAIN_CONTEXT_KEY: payload_converter.to_payload(headers),
         }
 
+
 @contextmanager
 def context_from_header(
     input: _InputWithHeaders, payload_converter: temporalio.converter.PayloadConverter
@@ -49,6 +53,7 @@ def context_from_header(
             yield
     else:
         yield
+
 
 class LangChainContextPropagationInterceptor(
     temporalio.client.Interceptor, temporalio.worker.Interceptor
@@ -78,6 +83,7 @@ class LangChainContextPropagationInterceptor(
     ) -> Type[_LangChainContextPropagationWorkflowInboundInterceptor]:
         return _LangChainContextPropagationWorkflowInboundInterceptor
 
+
 class _LangChainContextPropagationClientOutboundInterceptor(
     temporalio.client.OutboundInterceptor
 ):
@@ -95,6 +101,7 @@ class _LangChainContextPropagationClientOutboundInterceptor(
         with trace(name=f"start_workflow:{input.workflow}"):
             set_header_from_context(input, self._payload_converter)
             return await super().start_workflow(input)
+
 
 class _LangChainContextPropagationActivityInboundInterceptor(
     temporalio.worker.ActivityInboundInterceptor
@@ -114,11 +121,14 @@ class _LangChainContextPropagationActivityInboundInterceptor(
             with trace(name=f"execute_activity:{name}"):
                 return await self.next.execute_activity(input)
 
+
 class _LangChainContextPropagationWorkflowInboundInterceptor(
     temporalio.worker.WorkflowInboundInterceptor
 ):
     def init(self, outbound: temporalio.worker.WorkflowOutboundInterceptor) -> None:
-        self.next.init(_LangChainContextPropagationWorkflowOutboundInterceptor(outbound))
+        self.next.init(
+            _LangChainContextPropagationWorkflowOutboundInterceptor(outbound)
+        )
 
     async def execute_workflow(
         self, input: temporalio.worker.ExecuteWorkflowInput
@@ -141,7 +151,7 @@ class _LangChainContextPropagationWorkflowInboundInterceptor(
                 return await self.next.execute_workflow(input)
             finally:
                 with temporalio.workflow.unsafe.sandbox_unrestricted():
-                    # Cannot use __aexit__ because it's internally uses 
+                    # Cannot use __aexit__ because it's internally uses
                     # loop.run_in_executor which is not available in the sandbox
                     t.__exit__()
 

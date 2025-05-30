@@ -2,8 +2,9 @@ from temporalio.workflow import unsafe
 
 with unsafe.imports_passed_through():
     from datetime import timedelta
-    from typing import Callable, Any
-    from agents import Tool, RunContextWrapper, FunctionTool
+    from typing import Any, Callable
+
+    from agents import FunctionTool, RunContextWrapper, Tool
     from agents.function_schema import function_schema
     from temporalio import activity, workflow
     from temporalio.exceptions import ApplicationError
@@ -17,14 +18,19 @@ def activities_as_tools(*tools: Callable) -> list[Tool]:
 def activity_as_tool(fn: Callable) -> Tool:
     ret = activity._Definition.from_callable(fn)
     if not ret:
-        raise ApplicationError("Bare function without tool and activity decorators is not supported", "invalid_tool")
+        raise ApplicationError(
+            "Bare function without tool and activity decorators is not supported",
+            "invalid_tool",
+        )
 
     async def run_activity(ctx: RunContextWrapper[Any], input: str) -> Any:
-        return str(await workflow.execute_activity(
-            fn,
-            input,
-            start_to_close_timeout=timedelta(seconds=10),
-        ))
+        return str(
+            await workflow.execute_activity(
+                fn,
+                input,
+                start_to_close_timeout=timedelta(seconds=10),
+            )
+        )
 
     schema = function_schema(fn)
     return FunctionTool(

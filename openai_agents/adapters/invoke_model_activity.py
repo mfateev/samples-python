@@ -1,11 +1,23 @@
 import enum
 import json
 from dataclasses import dataclass
-from typing import Union, Optional, TypedDict, Any, cast
+from typing import Any, Optional, TypedDict, Union, cast
 
-from agents import TResponseInputItem, ModelSettings, Tool, AgentOutputSchemaBase, Handoff, \
-    ModelTracing, ModelResponse, FunctionTool, FileSearchTool, WebSearchTool, ComputerTool, \
-    RunContextWrapper, UserError
+from agents import (
+    AgentOutputSchemaBase,
+    ComputerTool,
+    FileSearchTool,
+    FunctionTool,
+    Handoff,
+    ModelResponse,
+    ModelSettings,
+    ModelTracing,
+    RunContextWrapper,
+    Tool,
+    TResponseInputItem,
+    UserError,
+    WebSearchTool,
+)
 from agents.models.multi_provider import MultiProvider
 from temporalio import activity
 
@@ -52,7 +64,7 @@ class AgentOutputSchemaInput(AgentOutputSchemaBase):
 
     def is_plain_text(self) -> bool:
         """Whether the output type is plain text (versus a JSON object)."""
-        return self.output_type_name is None or self.output_type_name == 'str'
+        return self.output_type_name is None or self.output_type_name == "str"
 
     def is_strict_json_schema(self) -> bool:
         """Whether the JSON schema is in strict mode."""
@@ -73,6 +85,7 @@ class AgentOutputSchemaInput(AgentOutputSchemaBase):
 
 class ModelTracingInput(enum.IntEnum):
     """ModelTracing is enum.Enum instead of IntEnum"""
+
     DISABLED = 0
     ENABLED = 1
     ENABLED_WITHOUT_DATA = 2
@@ -94,7 +107,7 @@ class ActivityModelInput(TypedDict, total=False):
 @_auto_heartbeater
 async def invoke_model_activity(input: ActivityModelInput) -> ModelResponse:
     # TODO: Is model caching needed here?
-    model = MultiProvider().get_model(input.get('model_name'))
+    model = MultiProvider().get_model(input.get("model_name"))
 
     async def empty_on_invoke_tool(ctx: RunContextWrapper[Any], input: str) -> str:
         pass
@@ -104,7 +117,7 @@ async def invoke_model_activity(input: ActivityModelInput) -> ModelResponse:
 
     # workaround for https://github.com/pydantic/pydantic/issues/9541
     # ValidatorIterator returned
-    input_json = json.dumps(input['input'], default=lambda o: str(o))
+    input_json = json.dumps(input["input"], default=lambda o: str(o))
     input_input = json.loads(input_json)
 
     def make_tool(tool: ToolInput) -> Tool:
@@ -116,27 +129,33 @@ async def invoke_model_activity(input: ActivityModelInput) -> ModelResponse:
             case "computer_search_preview":
                 return cast(ComputerTool, tool)
             case _:
-                return FunctionTool(name=tool.name,
-                                    description=tool.description,
-                                    params_json_schema=tool.params_json_schema,
-                                    on_invoke_tool=empty_on_invoke_tool,
-                                    strict_json_schema=tool.strict_json_schema)
+                return FunctionTool(
+                    name=tool.name,
+                    description=tool.description,
+                    params_json_schema=tool.params_json_schema,
+                    on_invoke_tool=empty_on_invoke_tool,
+                    strict_json_schema=tool.strict_json_schema,
+                )
 
-    tools = [make_tool(x) for x in input.get('tools', [])]
-    handoffs = [Handoff(
-        tool_name=x.tool_name,
-        tool_description=x.tool_description,
-        input_json_schema=x.input_json_schema,
-        agent_name=x.agent_name,
-        strict_json_schema=x.strict_json_schema,
-        on_invoke_handoff=empty_on_invoke_handoff,
-    ) for x in input.get('handoffs', [])]
-    return await model.get_response(system_instructions=input.get('system_instructions'),
-                                    input=input_input,
-                                    model_settings=input['model_settings'],
-                                    tools=tools,
-                                    output_schema=input.get('output_schema'),
-                                    handoffs=handoffs,
-                                    tracing=ModelTracing(input['tracing']),
-                                    previous_response_id=input.get('previous_response_id')
-                                    )
+    tools = [make_tool(x) for x in input.get("tools", [])]
+    handoffs = [
+        Handoff(
+            tool_name=x.tool_name,
+            tool_description=x.tool_description,
+            input_json_schema=x.input_json_schema,
+            agent_name=x.agent_name,
+            strict_json_schema=x.strict_json_schema,
+            on_invoke_handoff=empty_on_invoke_handoff,
+        )
+        for x in input.get("handoffs", [])
+    ]
+    return await model.get_response(
+        system_instructions=input.get("system_instructions"),
+        input=input_input,
+        model_settings=input["model_settings"],
+        tools=tools,
+        output_schema=input.get("output_schema"),
+        handoffs=handoffs,
+        tracing=ModelTracing(input["tracing"]),
+        previous_response_id=input.get("previous_response_id"),
+    )

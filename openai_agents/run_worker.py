@@ -7,7 +7,9 @@ from temporalio.worker import Worker
 
 from openai_agents.adapters.invoke_model_activity import invoke_model_activity
 from openai_agents.adapters.open_ai_data_converter import open_ai_data_converter
-from openai_agents.adapters.temporal_openai_agents import set_open_ai_agent_temporal_overrides
+from openai_agents.adapters.temporal_openai_agents import (
+    set_open_ai_agent_temporal_overrides,
+)
 from openai_agents.adapters.trace_interceptor import OpenAIAgentsTracingInterceptor
 from openai_agents.workflows.agents_as_tools_workflow import AgentsAsToolsWorkflow
 from openai_agents.workflows.customer_service_workflow import CustomerServiceWorkflow
@@ -21,18 +23,24 @@ async def main():
     with set_open_ai_agent_temporal_overrides():
 
         # Create client connected to server at the given address
-        client = await Client.connect("localhost:7233",
-                                      data_converter=open_ai_data_converter)
+        client = await Client.connect(
+            "localhost:7233", data_converter=open_ai_data_converter
+        )
 
         # with concurrent.futures.ThreadPoolExecutor(max_workers=100) as activity_executor:
         worker = Worker(
             client,
             task_queue="my-task-queue",
-            workflows=[HelloWorldAgent, ToolsWorkflow, ResearchWorkflow, CustomerServiceWorkflow,
-                       AgentsAsToolsWorkflow],
+            workflows=[
+                HelloWorldAgent,
+                ToolsWorkflow,
+                ResearchWorkflow,
+                CustomerServiceWorkflow,
+                AgentsAsToolsWorkflow,
+            ],
             activities=[invoke_model_activity, get_weather],
             # activity_executor=activity_executor,
-            interceptors=[OpenAIAgentsTracingInterceptor()]
+            interceptors=[OpenAIAgentsTracingInterceptor()],
         )
         await worker.run()
 
