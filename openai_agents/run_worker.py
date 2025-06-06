@@ -3,14 +3,12 @@ from __future__ import annotations
 import asyncio
 
 from temporalio.client import Client
+from temporalio.contrib.openai_agents.invoke_model_activity import invoke_model_activity
+from temporalio.contrib.openai_agents.open_ai_data_converter import open_ai_data_converter
+from temporalio.contrib.openai_agents.temporal_openai_agents import set_open_ai_agent_temporal_overrides
+from temporalio.contrib.openai_agents.trace_interceptor import OpenAIAgentsTracingInterceptor
 from temporalio.worker import Worker
 
-from openai_agents.adapters.invoke_model_activity import invoke_model_activity
-from openai_agents.adapters.open_ai_data_converter import open_ai_data_converter
-from openai_agents.adapters.temporal_openai_agents import (
-    set_open_ai_agent_temporal_overrides,
-)
-from openai_agents.adapters.trace_interceptor import OpenAIAgentsTracingInterceptor
 from openai_agents.workflows.agents_as_tools_workflow import AgentsAsToolsWorkflow
 from openai_agents.workflows.customer_service_workflow import CustomerServiceWorkflow
 from openai_agents.workflows.get_weather_activity import get_weather

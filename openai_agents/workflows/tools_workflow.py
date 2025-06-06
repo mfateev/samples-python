@@ -1,8 +1,7 @@
 from __future__ import annotations
 
 from temporalio import workflow
-
-from openai_agents.adapters.temporal_tools import activities_as_tools, activity_as_tool
+from temporalio.contrib.openai_agents.temporal_tools import activities_as_tools
 
 with workflow.unsafe.imports_passed_through():
     from agents import Agent, Runner
