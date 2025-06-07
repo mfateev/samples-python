@@ -1,7 +1,7 @@
 from temporalio import workflow
 
 with workflow.unsafe.imports_passed_through():
-    from agents import Agent, ItemHelpers, MessageOutputItem, Runner, trace
+    from agents import Agent, ItemHelpers, MessageOutputItem, Runner, custom_span
 
 """
 This example shows the agents-as-tools pattern. The frontline agent receives a user message and
@@ -66,7 +66,7 @@ class AgentsAsToolsWorkflow:
     @workflow.run
     async def run(self, msg: str) -> str:
         # Run the entire orchestration in a single trace
-        with trace("Orchestrator evaluator"):
+        with custom_span("Orchestrator evaluator"):
             orchestrator = orchestrator_agent()
             synthesizer = synthesizer_agent()
 

@@ -12,6 +12,5 @@ class HelloWorldAgent:
             name="Assistant",
             instructions="You only respond in haikus.",
         )
-        with trace("HellowWorld", group_id=workflow.info().workflow_id):
-            result = await Runner.run(agent, input=prompt)
+        result = await Runner.run(agent, input=prompt)
         return result.final_output
