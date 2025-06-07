@@ -6,7 +6,10 @@ authors = [{ name = "Temporal Technologies Inc", email = "sdk@temporal.io" }]
 requires-python = "~=3.9"
 readme = "README.md"
 license = "MIT"
-dependencies = ["temporalio>=1.11.1,<2"]
+dependencies = [
+    # Original dependency:
+    # "temporalio>=1.11.1,<2"
+]
 
 [project.urls]
 Homepage = "https://github.com/temporalio/samples-python"
@@ -15,6 +18,9 @@ Documentation = "https://docs.temporal.io/docs/python"
 "Bug Tracker" = "https://github.com/temporalio/samples-python/issues"
 
 [dependency-groups]
+temporal = [
+    "temporalio @ git+https://github.com/mfateev/sdk-python.git@openai-agents"
+]
 dev = [
     "black>=22.3.0,<23",
     "isort>=5.10.1,<6",
@@ -63,6 +69,7 @@ cloud-export-to-parquet = [
 
 [tool.uv]
 default-groups = [
+    "temporal",
     "dev",
     "bedrock",
     "dsl",
