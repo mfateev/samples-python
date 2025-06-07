@@ -7,8 +7,12 @@ from temporalio.client import (
     WorkflowUpdateFailedError,
 )
 from temporalio.common import QueryRejectCondition, WorkflowIDReusePolicy
-from temporalio.contrib.openai_agents.open_ai_data_converter import open_ai_data_converter
-from temporalio.contrib.openai_agents.trace_interceptor import OpenAIAgentsTracingInterceptor
+from temporalio.contrib.openai_agents.open_ai_data_converter import (
+    open_ai_data_converter,
+)
+from temporalio.contrib.openai_agents.trace_interceptor import (
+    OpenAIAgentsTracingInterceptor,
+)
 from temporalio.service import RPCError, RPCStatusCode
 
 from openai_agents.workflows.customer_service_workflow import (

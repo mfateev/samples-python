@@ -2,8 +2,12 @@ import asyncio
 
 from temporalio.client import Client
 from temporalio.common import WorkflowIDReusePolicy
-from temporalio.contrib.openai_agents.open_ai_data_converter import open_ai_data_converter
-from temporalio.contrib.openai_agents.trace_interceptor import OpenAIAgentsTracingInterceptor
+from temporalio.contrib.openai_agents.open_ai_data_converter import (
+    open_ai_data_converter,
+)
+from temporalio.contrib.openai_agents.trace_interceptor import (
+    OpenAIAgentsTracingInterceptor,
+)
 
 from openai_agents.workflows.hello_world_workflow import HelloWorldAgent
 
