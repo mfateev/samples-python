@@ -18,8 +18,14 @@ with workflow.unsafe.imports_passed_through():
         Tool,
         TResponseInputItem,
         WebSearchTool,
+        # The imports below are needed to force load them for pydantic validation.
+        # noqa: F401 comment tells tools not to warn about unused imports.
+        Usage,  # noqa: F401
     )
-    from agents.items import TResponseStreamEvent
+    from agents.items import (
+        TResponseStreamEvent,
+        TResponseOutputItem,  # noqa: F401
+    )
 
     from openai_agents.adapters.invoke_model_activity import (
         ActivityModelInput,
@@ -38,16 +44,16 @@ class _TemporalModelStub(Model):
         self.model_name = model_name
 
     async def get_response(
-        self,
-        system_instructions: str | None,
-        input: str | list[TResponseInputItem],
-        model_settings: ModelSettings,
-        tools: list[Tool],
-        output_schema: AgentOutputSchemaBase | None,
-        handoffs: list[Handoff],
-        tracing: ModelTracing,
-        *,
-        previous_response_id: str | None,
+            self,
+            system_instructions: str | None,
+            input: str | list[TResponseInputItem],
+            model_settings: ModelSettings,
+            tools: list[Tool],
+            output_schema: AgentOutputSchemaBase | None,
+            handoffs: list[Handoff],
+            tracing: ModelTracing,
+            *,
+            previous_response_id: str | None,
     ) -> ModelResponse:
         def get_summary(input: str | list[TResponseInputItem]) -> str:
             ### Activity summary shown in the UI
@@ -96,7 +102,7 @@ class _TemporalModelStub(Model):
             else None
         )
         if output_schema is not None and not isinstance(
-            output_schema, AgentOutputSchema
+                output_schema, AgentOutputSchema
         ):
             raise TypeError(
                 f"Only AgentOutputSchema is supported by Temporal Model, got {type(output_schema).__name__}"
@@ -135,15 +141,15 @@ class _TemporalModelStub(Model):
         )
 
     def stream_response(
-        self,
-        system_instructions: str | None,
-        input: str | list[TResponseInputItem],
-        model_settings: ModelSettings,
-        tools: list[Tool],
-        output_schema: AgentOutputSchemaBase | None,
-        handoffs: list[Handoff],
-        tracing: ModelTracing,
-        *,
-        previous_response_id: str | None,
+            self,
+            system_instructions: str | None,
+            input: str | list[TResponseInputItem],
+            model_settings: ModelSettings,
+            tools: list[Tool],
+            output_schema: AgentOutputSchemaBase | None,
+            handoffs: list[Handoff],
+            tracing: ModelTracing,
+            *,
+            previous_response_id: str | None,
     ) -> AsyncIterator[TResponseStreamEvent]:
         raise NotImplementedError("Temporal model doesn't support streams yet")
