@@ -42,7 +42,10 @@ encryption = [
 ]
 gevent = ["gevent==25.4.2 ; python_version >= '3.8'"]
 langchain = [
-    "openai>=1.4.0,<2",
+    "langchain",
+    "langchain-core",
+    "langchain_openai",
+    "fastapi",
     "tqdm>=4.62.0,<5",
     "uvicorn[standard]>=0.24.0.post1,<0.25",
 ]
@@ -63,6 +66,7 @@ cloud-export-to-parquet = [
     "pyarrow>=19.0.1",
 ]
 openai-agents = [
+    "openai>=1.4.0,<2",
     # TODO: Remove this once we have a release of openai-agents that works with the runner class
     "openai-agents @ git+https://github.com/openai/openai-agents-python.git@pakrym/runner-class",
     #    "openai-agents @ file:///Users/maxim/repos/openai-agents-python",

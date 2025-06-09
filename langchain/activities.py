@@ -27,5 +27,4 @@ async def translate_phrase(params: TranslateParams) -> str:
     chain = chat_prompt | ChatOpenAI()
     # Use the asynchronous invoke method
     chain_result = await chain.ainvoke({"phrase": params.phrase, "language": params.language})
-    content = chain_result.get("content", "")
-    return str(content)
+    return str(chain_result.content)
