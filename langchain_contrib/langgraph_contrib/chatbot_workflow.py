@@ -1,19 +1,14 @@
-from typing import Annotated, List, Tuple
-from typing_extensions import TypedDict
-from temporalio import workflow
 from datetime import timedelta
 
-with workflow.unsafe.imports_passed_through():
-    from langgraph.graph.message import add_messages
-    from langchain_contrib.langgraph_contrib.chatbot_activity import invoke_model
+from temporalio import workflow
 
-class State(TypedDict):
-    messages: Annotated[list, add_messages]
+with workflow.unsafe.imports_passed_through():
+    from langchain_contrib.langgraph_contrib.chatbot_activity import invoke_model, InvokeModelInput
+
 
 @workflow.defn
 class ChatbotWorkflow:
     def __init__(self) -> None:
-        self._state: State = {"messages": []}
         self._should_quit = False
 
     @workflow.run
@@ -25,18 +20,18 @@ class ChatbotWorkflow:
         if user_input.lower() in ["quit", "q"]:
             self._should_quit = True
             return "Goodbye!"
-            
-        # Add user message to state
-        self._state["messages"].append(("user", user_input))
-        
+
+        messages = [{"user", user_input}]
+
         # Invoke a model through an activity
+        model_input = InvokeModelInput(messages=messages)
         response = await workflow.execute_activity(
             invoke_model,
-            self._state["messages"],
+            model_input,
             start_to_close_timeout=timedelta(seconds=60),
         )
-        
+
         # Add assistant response to state
-        self._state["messages"].append(("assistant", response.content))
-        
+        messages.append(("assistant", response.content))
+
         return response.content

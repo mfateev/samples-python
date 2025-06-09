@@ -1,15 +1,16 @@
 import asyncio
+
 from temporalio.client import Client
+from temporalio.contrib.pydantic import pydantic_data_converter
 from temporalio.worker import Worker
 
 from langchain_contrib.langgraph_contrib.chatbot_activity import invoke_model
 from langchain_contrib.langgraph_contrib.chatbot_graph_workflow import ChatbotGraphWorkflow
 from langchain_contrib.langgraph_contrib.chatbot_workflow import ChatbotWorkflow
-from langchain_contrib.pydantic_plus_converter import pydantic_plus_converter
 
 
 async def main():
-    client = await Client.connect("localhost:7233", data_converter=pydantic_plus_converter)
+    client = await Client.connect("localhost:7233", data_converter=pydantic_data_converter)
     
     worker = Worker(
         client,

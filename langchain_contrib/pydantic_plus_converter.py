@@ -60,12 +60,12 @@ class _PydanticPlusJSONPlainPayloadConverter(EncodingPayloadConverter):
         #     data = json.dumps(tree).encode()
         # else:
         # wrapper = _WrapperModel[type(processed)](root=processed)
-        wrapper = _WrapperModel[type(value)](root=value)
-        # data = wrapper.model_dump_json().encode()
-        tree = wrapper.model_dump()
+        wrapper = _WrapperModel[Any](root=value)
+        data = wrapper.model_dump_json().encode()
+        # tree = wrapper.model_dump()
 
-        tree = _postprocess_messages(tree)
-        data = json.dumps(tree).encode()
+        # tree = _postprocess_messages(tree)
+        # data = json.dumps(tree).encode()
 
 
         # if isinstance(value, list) and all(isinstance(v, BaseMessage) for v in value):

@@ -44,7 +44,7 @@ class ChatbotGraphWorkflow:
         response = await workflow.execute_activity(
             invoke_model,
             InvokeModelInput(messages=messages),
-            start_to_close_timeout=timedelta(seconds=60),
+            start_to_close_timeout=timedelta(seconds=10),
             retry_policy=common.RetryPolicy(
                 maximum_attempts=3,
             ),
@@ -68,3 +68,8 @@ class ChatbotGraphWorkflow:
 
         # Return the last message content
         return result["messages"][-1].content
+
+    @workflow.query
+    def get_messages(self) -> Sequence[BaseMessage]:
+        """Query to get the current messages in the workflow."""
+        return self._state["messages"]

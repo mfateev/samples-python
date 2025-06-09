@@ -1,10 +1,10 @@
 import asyncio
+
 from temporalio import common
 from temporalio.client import Client, WithStartWorkflowOperation
+from temporalio.contrib.pydantic import pydantic_data_converter
 
 from langchain_contrib.langgraph_contrib.chatbot_graph_workflow import ChatbotGraphWorkflow
-from langchain_contrib.langgraph_contrib.chatbot_workflow import ChatbotWorkflow
-from langchain_contrib.pydantic_plus_converter import pydantic_plus_converter
 
 
 async def handle_message(
@@ -23,7 +23,7 @@ async def handle_message(
     
     try:
         response = await temporal_client.execute_update_with_start_workflow(
-            ChatbotWorkflow.process_message,
+            ChatbotGraphWorkflow.process_message,
             message,
             start_workflow_operation=start_op,
         )
@@ -33,7 +33,7 @@ async def handle_message(
         return "Sorry, there was an error processing your message."
 
 async def main():
-    client = await Client.connect("localhost:7233", data_converter=pydantic_plus_converter)
+    client = await Client.connect("localhost:7233", data_converter=pydantic_data_converter)
     
     print("Chatbot started! Type 'quit' or 'q' to exit.")
     while True:
