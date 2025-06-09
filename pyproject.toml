@@ -64,8 +64,9 @@ cloud-export-to-parquet = [
 ]
 openai-agents = [
     # TODO: Remove this once we have a release of openai-agents that works with the runner class
-    "openai-agents @ git+https://github.com/openai/openai-agents-python.git@pakrym/runner-class"
+    "openai-agents @ git+https://github.com/openai/openai-agents-python.git@pakrym/runner-class",
     #    "openai-agents @ file:///Users/maxim/repos/openai-agents-python",
+    "rich",
 ]
 
 [tool.uv]
