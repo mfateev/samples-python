@@ -17,6 +17,8 @@ class State(TypedDict):
 
 @workflow.defn(sandboxed=False)
 class ChatbotGraphWorkflow:
+    """Executes the chatbot Langgraph sample inside a Temporal workflow."""
+
     def __init__(self) -> None:
         self._state: State = {"messages": []}
         self._should_quit = False
@@ -64,7 +66,7 @@ class ChatbotGraphWorkflow:
             return "Goodbye!"
 
         # Process through graph
-        result = await self._graph.ainvoke({'messages':("user",user_input)})
+        result = await self._graph.ainvoke({'messages': ("user", user_input)})
 
         # Return the last message content
         return result["messages"][-1].content
