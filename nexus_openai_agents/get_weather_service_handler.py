@@ -12,15 +12,15 @@ from temporalio.nexus import WorkflowRunOperationContext, workflow_run_operation
 
 from nexus_openai_agents.get_weather_service import (
     GetWeatherInput,
-    GetWeatherService,
+    WeatherService,
     Weather,
 )
 
 from nexus_openai_agents.get_weather_workflow import GetWeatherWorkflow
 
 
-@service_handler(service=GetWeatherService)
-class GetWeatherServiceHandler:
+@service_handler(service=WeatherService)
+class WeatherServiceHandler:
     @workflow_run_operation
     async def get_weather(
             self, ctx: WorkflowRunOperationContext, input: GetWeatherInput

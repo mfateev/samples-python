@@ -26,23 +26,19 @@ async def main():
     with set_open_ai_agent_temporal_overrides(
             model_params=ModelActivityParameters(start_to_close_timeout=timedelta(seconds=10)),
     ):
-        # Create client connected to server at the given address
         client = await Client.connect(
             "localhost:7233",
             data_converter=open_ai_data_converter,
             interceptors=[OpenAIAgentsTracingInterceptor()],
         )
 
-        model_activity = ModelActivity()
         worker = Worker(
             client,
-            task_queue="weather-task-queue",
+            task_queue="weather-service",
             workflows=[
-                ToolsWorkflow,
+                GetWeatherWorkflow,
             ],
-            activities=[
-                model_activity.invoke_model_activity,
-            ],
+            nexus_service_handlers=[WeatherServiceHandler()],
         )
         await worker.run()
 

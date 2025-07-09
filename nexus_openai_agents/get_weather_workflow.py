@@ -1,4 +1,6 @@
+import asyncio
 from dataclasses import dataclass
+from datetime import timedelta
 
 from temporalio import workflow
 
@@ -14,6 +16,7 @@ class Weather:
 class GetWeatherWorkflow:
     @workflow.run
     async def run(self, city: str) -> Weather:
+        await workflow.sleep(timedelta(seconds=30))  # Simulate a delay for the weather retrieval
         """
         Workflow to get the weather for a given city.
         """

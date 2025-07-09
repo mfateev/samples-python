@@ -24,5 +24,5 @@ class GetWeatherInput:
 
 
 @nexusrpc.service
-class GetWeatherService:
+class WeatherService:
     get_weather: nexusrpc.Operation[GetWeatherInput, Weather]
