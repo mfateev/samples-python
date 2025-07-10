@@ -17,9 +17,9 @@ from temporalio.contrib.openai_agents.temporal_openai_agents import (
 from temporalio.contrib.openai_agents.trace_interceptor import OpenAIAgentsTracingInterceptor
 from temporalio.worker import Worker
 
-from nexus_openai_agents.get_weather_service_handler import WeatherServiceHandler
+from nexus_openai_agents.weather_service_handler import WeatherServiceHandler
 from nexus_openai_agents.get_weather_workflow import GetWeatherWorkflow
-from nexus_openai_agents.tools_workflow import ToolsWorkflow
+from nexus_openai_agents.tools_workflow import ToolsAgentWorkflow
 
 
 async def main():

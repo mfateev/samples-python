@@ -4,8 +4,8 @@ from datetime import timedelta
 
 from temporalio import workflow
 
-import nexus_openai_agents.get_weather_service_handler as weather_module
-from nexus_openai_agents.get_weather_service import WeatherService
+import nexus_openai_agents.weather_service_handler as weather_module
+from nexus_openai_agents.weather_service import WeatherService
 
 # Import our activity, passing it through the sandbox
 with workflow.unsafe.imports_passed_through():
@@ -14,7 +14,7 @@ with workflow.unsafe.imports_passed_through():
 
 
 @workflow.defn
-class ToolsWorkflow:
+class ToolsAgentWorkflow:
     @workflow.run
     async def run(self, question: str) -> str:
         agent = Agent(
@@ -32,17 +32,3 @@ class ToolsWorkflow:
 
         result = await Runner.run(agent, input=question)
         return result.final_output
-
-
-def process_order(order):
-    ...
-    prepare_shipment(order)
-    ...
-
-
-def prepare_shipment(order):
-    ...
-
-    charge_confirmation = charge(order.order_id, order.payment_info)
-    shipment_confirmation = ship(order)
-    send_email(order, charge_confirmation, shipment_confirmation)

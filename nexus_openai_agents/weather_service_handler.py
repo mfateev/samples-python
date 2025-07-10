@@ -10,7 +10,7 @@ from nexusrpc.handler import StartOperationContext, service_handler, sync_operat
 from temporalio import nexus
 from temporalio.nexus import WorkflowRunOperationContext, workflow_run_operation
 
-from nexus_openai_agents.get_weather_service import (
+from nexus_openai_agents.weather_service import (
     GetWeatherInput,
     WeatherService,
     Weather,
