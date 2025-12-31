@@ -9,6 +9,7 @@ import asyncio
 from crewai import LLM
 from temporalio.client import Client
 from temporalio.contrib.crewai import CrewAIActivityConfig, CrewAIPlugin
+from temporalio.envconfig import ClientConfig
 from temporalio.worker import Worker
 
 from crewai_plugin.basic.activities.search_activity import search_web
@@ -26,11 +27,12 @@ async def main():
         )
     )
 
+    # Load connection config from environment
+    config = ClientConfig.load_client_connect_config()
+    config.setdefault("target_host", "localhost:7233")
+
     # Connect to Temporal server with the plugin
-    client = await Client.connect(
-        "localhost:7233",
-        plugins=[plugin],
-    )
+    client = await Client.connect(**config, plugins=[plugin])
 
     # Create worker with workflows and custom activities
     # Note: CrewAI activities (llm_call, memory, etc.) are registered by the plugin

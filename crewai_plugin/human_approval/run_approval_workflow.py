@@ -10,6 +10,7 @@ import asyncio
 
 from temporalio.client import Client
 from temporalio.contrib.crewai import CrewAIActivityConfig, CrewAIPlugin
+from temporalio.envconfig import ClientConfig
 
 from crewai_plugin.human_approval.workflows.approval_workflow import (
     ApprovalDecision,
@@ -27,11 +28,12 @@ async def main():
         register_activities=False,
     )
 
+    # Load connection config from environment
+    config = ClientConfig.load_client_connect_config()
+    config.setdefault("target_host", "localhost:7233")
+
     # Connect to Temporal
-    client = await Client.connect(
-        "localhost:7233",
-        plugins=[plugin],
-    )
+    client = await Client.connect(**config, plugins=[plugin])
 
     topic = "The Benefits of Remote Work"
     workflow_id = "content-approval-workflow"

@@ -9,6 +9,7 @@ import asyncio
 from crewai import LLM
 from temporalio.client import Client
 from temporalio.contrib.crewai import CrewAIActivityConfig, CrewAIPlugin
+from temporalio.envconfig import ClientConfig
 from temporalio.worker import Worker
 
 from crewai_plugin.tool_config.activities.tools import (
@@ -29,11 +30,12 @@ async def main():
         )
     )
 
+    # Load connection config from environment
+    config = ClientConfig.load_client_connect_config()
+    config.setdefault("target_host", "localhost:7233")
+
     # Connect to Temporal server
-    client = await Client.connect(
-        "localhost:7233",
-        plugins=[plugin],
-    )
+    client = await Client.connect(**config, plugins=[plugin])
 
     # Create main worker with most activities
     worker = Worker(
