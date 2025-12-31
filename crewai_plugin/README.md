@@ -22,7 +22,10 @@ This approach ensures that AI agent workflows survive failures, automatically re
 
 | Sample | Description |
 |--------|-------------|
-| [Basic Examples](./basic/README.md) | Simple examples including hello world and multi-agent research crew |
+| [Basic Examples](./basic/README.md) | Hello world and multi-agent research crew |
+| [Memory](./memory/README.md) | Durable memory (short-term, long-term, entity) |
+| [Human Approval](./human_approval/README.md) | Human-in-the-loop via Temporal signals |
+| [Tool Config](./tool_config/README.md) | Activity options: timeouts, retries, task queues |
 
 ## Quick Start
 
