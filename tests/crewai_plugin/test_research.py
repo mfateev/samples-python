@@ -8,7 +8,7 @@ from crewai import LLM
 from temporalio.client import Client
 from temporalio.contrib.crewai import CrewAIActivityConfig, CrewAIPlugin
 from temporalio.testing import WorkflowEnvironment
-from temporalio.worker import Worker, UnsandboxedWorkflowRunner
+from temporalio.worker import UnsandboxedWorkflowRunner, Worker
 
 from crewai_plugin.basic.activities.search_activity import search_web
 from crewai_plugin.basic.workflows.research_workflow import ResearchCrewWorkflow
