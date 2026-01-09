@@ -110,9 +110,9 @@ class MemoryCrewWorkflow:
             agents=[note_taker, analyst],
             tasks=[note_task, analysis_task],
             memory=True,
-            short_term_memory=ShortTermMemory(storage=stm_storage),
-            long_term_memory=LongTermMemory(storage=ltm_storage),
-            entity_memory=EntityMemory(storage=etm_storage),
+            short_term_memory=ShortTermMemory(storage=stm_storage),  # type: ignore[arg-type]
+            long_term_memory=LongTermMemory(storage=ltm_storage),  # type: ignore[arg-type]
+            entity_memory=EntityMemory(storage=etm_storage),  # type: ignore[arg-type]
             verbose=True,
         )
 
