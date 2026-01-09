@@ -10,7 +10,7 @@ from crewai import LLM
 from temporalio.client import Client
 from temporalio.contrib.crewai import CrewAIActivityConfig, CrewAIPlugin
 from temporalio.envconfig import ClientConfig
-from temporalio.worker import Worker
+from temporalio.worker import UnsandboxedWorkflowRunner, Worker
 
 from crewai_plugin.basic.activities.search_activity import search_web
 from crewai_plugin.basic.workflows.hello_world_workflow import HelloWorldCrewWorkflow
@@ -36,6 +36,7 @@ async def main():
 
     # Create worker with workflows and custom activities
     # Note: CrewAI activities (llm_call, memory, etc.) are registered by the plugin
+    # UnsandboxedWorkflowRunner is required because CrewAI reads prompt files from disk
     worker = Worker(
         client,
         task_queue="crewai-basic-task-queue",
@@ -46,6 +47,7 @@ async def main():
         activities=[
             search_web,  # Custom activity for the research workflow
         ],
+        workflow_runner=UnsandboxedWorkflowRunner(),
     )
 
     print("Starting CrewAI worker...")
