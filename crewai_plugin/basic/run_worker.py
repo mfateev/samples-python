@@ -34,9 +34,16 @@ async def main():
     # Connect to Temporal server with the plugin
     client = await Client.connect(**config, plugins=[plugin])
 
+    # Use UnsandboxedWorkflowRunner because CrewAI's Agent initialization
+    # reads prompt files via I18N.load_prompts(), which calls open().
+    # The default sandbox blocks open() at runtime.
+    #
+    # The LLM calls are already externalized to activities, so the main
+    # non-determinism concern (external API calls) is addressed.
+    workflow_runner = UnsandboxedWorkflowRunner()
+
     # Create worker with workflows and custom activities
     # Note: CrewAI activities (llm_call, memory, etc.) are registered by the plugin
-    # UnsandboxedWorkflowRunner is required because CrewAI reads prompt files from disk
     worker = Worker(
         client,
         task_queue="crewai-basic-task-queue",
@@ -47,7 +54,7 @@ async def main():
         activities=[
             search_web,  # Custom activity for the research workflow
         ],
-        workflow_runner=UnsandboxedWorkflowRunner(),
+        workflow_runner=workflow_runner,
     )
 
     print("Starting CrewAI worker...")
