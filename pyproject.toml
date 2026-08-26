@@ -44,6 +44,7 @@ external-storage = [
     "types_aiobotocore_s3>=2.25.2",
 ]
 external-storage-redis = ["redis>=5.0.0,<8"]
+external-workflow-streams = ["redis>=5,<9"]
 gevent = ["gevent>=25.4.2 ; python_version >= '3.8'"]
 google-adk = ["temporalio[google-adk] >= 1.32.0", "google-adk>=2.2.0,<3"]
 google-genai = [

@@ -4571,6 +4571,9 @@ external-storage = [
 external-storage-redis = [
     { name = "redis" },
 ]
+external-workflow-streams = [
+    { name = "redis" },
+]
 gevent = [
     { name = "gevent" },
 ]
@@ -4686,6 +4689,7 @@ external-storage = [
     { name = "types-aiobotocore-s3", specifier = ">=2.25.2" },
 ]
 external-storage-redis = [{ name = "redis", specifier = ">=5.0.0,<8" }]
+external-workflow-streams = [{ name = "redis", specifier = ">=5,<9" }]
 gevent = [{ name = "gevent", marker = "python_full_version >= '3.8'", specifier = ">=25.4.2" }]
 google-adk = [
     { name = "google-adk", specifier = ">=2.2.0,<3" },
