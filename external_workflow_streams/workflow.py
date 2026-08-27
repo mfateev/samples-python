@@ -3,9 +3,17 @@ from __future__ import annotations
 from datetime import timedelta
 
 from temporalio import workflow
-from temporalio.contrib.external_workflow_streams import external_stream
+from temporalio.contrib.external_workflow_streams import (
+    external_output_stream,
+    external_stream,
+)
 
-from external_workflow_streams.shared import STREAM_NAME, StreamMessage
+from external_workflow_streams.shared import (
+    INPUT_STREAM_NAME,
+    OUTPUT_STREAM_NAME,
+    ProcessedMessage,
+    StreamMessage,
+)
 
 
 @workflow.defn
@@ -16,7 +24,10 @@ class MessageConsumerWorkflow:
     async def run(self, expected_messages: int) -> int:
         messages = external_stream.with_options(
             idle_timeout=timedelta(seconds=2)
-        ).topic(STREAM_NAME, type=StreamMessage)
+        ).topic(INPUT_STREAM_NAME, type=StreamMessage)
+        processed_messages = external_output_stream.topic(
+            OUTPUT_STREAM_NAME, type=ProcessedMessage
+        )
         subscription = messages.subscribe()
 
         received = 0
@@ -26,9 +37,16 @@ class MessageConsumerWorkflow:
                 message.sequence,
                 message.body,
             )
+            await processed_messages.publish(
+                ProcessedMessage(
+                    sequence=message.sequence,
+                    body=message.body.upper(),
+                )
+            )
             received += 1
             if received == expected_messages:
                 subscription.close()
-                return received
+                break
 
+        await processed_messages.finish()
         return received
